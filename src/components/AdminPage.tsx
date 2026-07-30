@@ -7,10 +7,12 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  LogOut, 
-  Lock, 
-  User, 
-  Search, 
+  LogOut,
+  Lock,
+  User,
+  UserPlus,
+  LogIn,
+  Search,
   Check, 
   X, 
   Info,
@@ -20,7 +22,8 @@ import {
   Tv,
   FileText,
   UploadCloud,
-  Loader2
+  Loader2,
+  Star
 } from 'lucide-react';
 
 interface Property {
@@ -597,91 +600,106 @@ export default function AdminPage({
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#f4f6f9] flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          {/* Header */}
-          <div className="bg-[#ff6600] p-8 text-center text-white relative">
-            <div className="inline-flex p-3 bg-white/10 rounded-xl mb-3">
-              <Building2 size={32} />
-            </div>
-            <h2 className="text-2xl font-black tracking-tight">태왕공인중개사</h2>
-            <p className="text-orange-100 text-sm mt-1">공실현황 및 VR 매물 관리 시스템</p>
+      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-100">
+            <button className="flex-1 py-4 text-center font-bold text-[#009e73] border-b-2 border-[#009e73] flex items-center justify-center gap-2">
+              <Lock size={18} />
+              로그인
+            </button>
+            <button className="flex-1 py-4 text-center font-bold text-gray-400 flex items-center justify-center gap-2">
+              <UserPlus size={18} />
+              회원가입
+            </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="p-8 space-y-6">
-            {loginError && (
-              <div className="bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-lg border border-red-100">
-                {loginError}
-              </div>
-            )}
+          <div className="p-6 sm:p-8">
+            <p className="text-gray-500 font-medium text-[13.5px] leading-relaxed mb-6">
+              매물 등록 및 개인 맞춤 상담을 이용하시려면 이메일 혹은 소셜 계정으로 로그인해주세요.
+            </p>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">관리자 ID</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <User size={18} />
-                </span>
+            <form onSubmit={handleLogin} className="space-y-4">
+              {loginError && (
+                <div className="bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl border border-red-100">
+                  {loginError}
+                </div>
+              )}
+              
+              <div>
                 <input 
                   type="text" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ID를 입력하세요" 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#ff6600] outline-none transition-all"
+                  placeholder="이메일 주소 입력" 
+                  className="w-full bg-[#f8f9fa] border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:border-[#009e73] focus:ring-1 focus:ring-[#009e73] outline-none transition-all placeholder:text-gray-400 font-medium"
                   required
                 />
               </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">비밀번호</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Lock size={18} />
-                </span>
+              <div>
                 <input 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요" 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-[#ff6600] outline-none transition-all"
+                  placeholder="비밀번호 입력" 
+                  className="w-full bg-[#f8f9fa] border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:border-[#009e73] focus:ring-1 focus:ring-[#009e73] outline-none transition-all placeholder:text-gray-400 font-medium"
                   required
                 />
               </div>
-            </div>
 
-            <button 
-              type="submit" 
-              className="w-full bg-[#ff6600] hover:bg-[#e65c00] text-white py-3.5 rounded-xl font-bold transition-colors shadow-md shadow-orange-600/10"
-            >
-              로그인하기
-            </button>
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="flex-1 bg-[#f4f6f8] hover:bg-[#e9ecef] text-gray-600 py-3.5 rounded-xl font-bold transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  홈으로
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-[1.8] bg-[#009e73] hover:bg-[#008f68] text-white py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
+                >
+                  <LogIn size={18} />
+                  로그인 완료
+                </button>
+              </div>
+            </form>
 
-            {/* Dev Demo Notice Box */}
-            <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-4 flex gap-3">
-              <Info size={18} className="text-[#ff6600] shrink-0 mt-0.5" />
-              <div className="text-xs leading-relaxed text-gray-600">
-                <span className="font-bold text-gray-800">데모 시스템 테스트용 계정:</span>
-                <div className="mt-1 flex gap-4">
-                  <span>ID: <strong className="text-gray-900">admin</strong></span>
-                  <span>PW: <strong className="text-gray-900">1</strong></span>
-                </div>
+            <div className="mt-8 mb-6 relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-100"></div>
+              </div>
+              <div className="relative bg-white px-4 text-xs font-bold text-gray-400 tracking-wider">
+                SNS 간편 소셜 로그인
               </div>
             </div>
-          </form>
+
+            <div className="space-y-3">
+              <button type="button" className="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
+                <div className="absolute left-4 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/24/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
+                </div>
+                Google 계정으로 원클릭 로그인
+              </button>
+              <button type="button" className="w-full bg-[#fee500] hover:bg-[#e6ce00] text-gray-900 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
+                <div className="absolute left-4 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/24/svg" fill="currentColor"><path d="M12 3c-5.5 0-10 3.5-10 7.8 0 2.8 1.8 5.3 4.5 6.6l-1 3.7c-.1.3 0 .7.3.8.3.2.7.2 1-.1l4.4-2.9c.2 0 .5.1.8.1 5.5 0 10-3.5 10-7.8S17.5 3 12 3z"/></svg>
+                </div>
+                카카오톡 3초 간편로그인
+              </button>
+              <button type="button" className="w-full bg-[#03c75a] hover:bg-[#02b350] text-white py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
+                <div className="absolute left-4 font-black italic text-[20px] leading-none" style={{ fontFamily: 'Georgia, serif' }}>
+                  N
+                </div>
+                네이버 아이디로 로그인
+              </button>
+            </div>
+          </div>
         </div>
-        
-        <button 
-          onClick={() => navigate('/')}
-          className="mt-6 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
-        >
-          <ArrowLeft size={16} />
-          홈페이지로 이동
-        </button>
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans text-gray-800 flex flex-col">
       {/* Admin Header */}
@@ -1270,18 +1288,51 @@ export default function AdminPage({
 
                       {/* Image Grid */}
                       {formVrUrl && formVrUrl.trim() !== '' && (
-                        <div className="mt-4">
-                          <h5 className="font-bold text-gray-800 mb-3">등록된 VR 이미지 미리보기</h5>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {formVrUrl.split('\n').filter(url => url.trim() !== '').map((url, idx) => (
-                              <div key={idx} className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-100 aspect-video flex items-center justify-center">
-                                <img src={url.trim()} alt={`VR Photo ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Invalid+Image'; }} />
-                                {idx === 0 && (
-                                  <div className="absolute top-2 left-2 bg-[#ff6600] text-white text-xs font-bold px-2 py-1 rounded shadow">
-                                    대표 VR 사진
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="mt-6 space-y-6">
+                          <div className="p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            <div className="w-full aspect-[2/1] sm:aspect-video rounded-lg overflow-hidden border border-gray-200 shadow-sm relative">
+                              <img src={formVrUrl.split('\n').filter(url => url.trim() !== '')[0]?.trim()} alt="대표 VR 이미지" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x400?text=Invalid+Image'; }} />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-extrabold text-gray-700 mb-4 text-lg">파노라마 리스트</h5>
+                            <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
+                              {formVrUrl.split('\n').filter(url => url.trim() !== '').map((url, idx) => (
+                                <div key={idx} className={`relative shrink-0 w-64 aspect-video rounded-xl overflow-hidden border-4 snap-start transition-all ${idx === 0 ? 'border-[#ff6600]' : 'border-gray-200 hover:border-gray-300'}`}>
+                                  <img src={url.trim()} alt={`VR Photo ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Invalid+Image'; }} />
+                                  
+                                  {idx === 0 ? (
+                                    <>
+                                      <div className="absolute top-2 left-2 bg-[#ff6600] text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                                        ⭐ 대표 360사진
+                                      </div>
+                                      <div className="absolute top-2 right-2 text-yellow-400 drop-shadow-md">
+                                        <Star size={24} fill="currentColor" />
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                                        VR 360 파노라마 실사
+                                      </div>
+                                      <button 
+                                        type="button" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                          const selected = urls.splice(idx, 1)[0];
+                                          urls.unshift(selected);
+                                          setFormVrUrl(urls.join('\n'));
+                                        }}
+                                        className="absolute top-2 right-2 text-gray-300 hover:text-yellow-400 drop-shadow-md transition-colors"
+                                        title="대표 사진으로 설정"
+                                      >
+                                        <Star size={24} fill="currentColor" />
+                                      </button>
+                                    </>
+                                  )}
+                                  
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -1290,14 +1341,14 @@ export default function AdminPage({
                                       urls.splice(idx, 1);
                                       setFormVrUrl(urls.join('\n'));
                                     }}
-                                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 shadow"
+                                    className="absolute bottom-2 right-2 bg-white text-red-500 p-2 rounded-lg hover:bg-red-50 shadow-md border border-gray-200 transition-colors"
                                     title="이미지 삭제"
                                   >
-                                    <Trash2 size={16} />
+                                    <Trash2 size={20} />
                                   </button>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
                         </div>
                       )}

@@ -12,12 +12,21 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Extract URLs from string (split by newlines, trim, remove empty)
+  // Extract URLs from string (handle missing newlines by splitting on http)
   const urls = imageUrl 
-    ? imageUrl.split('\n').map(u => u.trim()).filter(u => u.length > 0)
+    ? imageUrl
+        .split(/(?=https?:\/\/)/) // Split right before http:// or https://
+        .map(u => u.trim())
+        .filter(u => u.length > 0)
+        .map(u => {
+          // Proxy through our backend to avoid CORS issues with Firebase Storage
+          if (u.includes('firebasestorage.googleapis.com')) {
+            return `${window.location.origin}/api/proxy-image?url=${encodeURIComponent(u)}`;
+          }
+          return u;
+        })
     : ['https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg'];
     
   if (urls.length === 0) {
@@ -26,8 +35,6 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
 
   useEffect(() => {
     if (!containerRef.current) return;
-
-    setLoading(true);
     setError(null);
 
     let viewerInstance: any = null;
@@ -38,6 +45,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         panorama: urls[0],
         touchmoveTwoFingers: false,
         mousewheel: true,
+        loadingImg: 'https://photo-sphere-viewer-data.netlify.app/assets/loader.gif',
         navbar: [
           'autorotate',
           'zoom',
@@ -49,14 +57,14 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
 
       viewerRef.current = viewerInstance;
 
-      viewerInstance.addEventListener('ready', () => {
-        setLoading(false);
+      viewerInstance.addEventListener('panorama-error', (e: any) => {
+        console.error('PSV: panorama-error fired:', e);
+        setError('360 이미지를 불러올 수 없습니다. 네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.');
       });
 
     } catch (err: any) {
       console.error('Failed to initialize photo-sphere-viewer:', err);
       setError('360 VR 뷰어를 초기화하지 못했습니다. WebGL 지원 여부를 확인하세요.');
-      setLoading(false);
     }
 
     return () => {
@@ -74,25 +82,18 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     if (!viewerRef.current || urls.length <= 1) return;
     const nextIndex = (currentIndex + 1) % urls.length;
     setCurrentIndex(nextIndex);
-    viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: false });
+    viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: true });
   };
 
   const goToPrev = () => {
     if (!viewerRef.current || urls.length <= 1) return;
     const prevIndex = (currentIndex - 1 + urls.length) % urls.length;
     setCurrentIndex(prevIndex);
-    viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: false });
+    viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: true });
   };
 
   return (
     <div className="w-full h-full relative bg-black flex items-center justify-center">
-      {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/60 z-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ff6600] mb-3"></div>
-          <p className="text-sm font-medium">360 VR 공간을 불러오고 있습니다...</p>
-        </div>
-      )}
-
       {error && (
         <div className="absolute inset-0 flex flex-col items-center justify-center text-red-400 bg-black/80 px-4 text-center z-20">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3 text-red-500">
@@ -106,6 +107,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
           </p>
         </div>
       )}
+
 
       <div ref={containerRef} className="w-full h-full aspect-[2/1] min-h-[350px] sm:min-h-[500px]" />
 

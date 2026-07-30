@@ -3,12 +3,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  projectId: "gumi-today-room-tv",
-  appId: "1:321272965760:web:9acc86183e14f3eedc1465",
-  apiKey: "AIzaSyCQ_3eEsyqbbmx5DHv0L5PRtgplaCqsu_U",
-  authDomain: "gumi-today-room-tv.firebaseapp.com",
-  storageBucket: "gumi-today-room-tv.firebasestorage.app",
-  messagingSenderId: "321272965760"
+  projectId: "project-3758368870789431339",
+  appId: "1:404949083911:web:d2675e53e56c97e37687a2",
+  apiKey: "AIzaSyChj7RIz9GPmJqOBaHj-WhGisMIApdY_y4",
+  authDomain: "project-3758368870789431339.firebaseapp.com",
+  storageBucket: "project-3758368870789431339.firebasestorage.app",
+  messagingSenderId: "404949083911"
 };
 
 const app = initializeApp(firebaseConfig);

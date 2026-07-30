@@ -949,7 +949,6 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
     (p.name && p.name === decodedId) ||
     (p.addr && p.addr.includes(decodedId))
   );
-  const [showVrModal, setShowVrModal] = useState(false);
   const [mapUrl, setMapUrl] = useState<string>('');
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
@@ -1133,24 +1132,12 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               4. 360 VR 투어
             </h3>
             {selectedProperty.vr ? (
-              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-orange-200 shadow-sm max-w-4xl mx-auto text-center flex flex-col items-center">
-                <div className="w-16 h-16 bg-orange-100 text-[#ff6600] rounded-full flex items-center justify-center mb-4">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-pulse">
-                    <path d="M2 12A10 10 0 0 0 22 12"/><path d="M2 12A10 10 0 0 1 22 12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                  </svg>
-                </div>
-                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">실제 방 안에 있는 듯한 초실감형 360도 가상공간 체험</h4>
-                <p className="text-gray-500 text-xs sm:text-sm max-w-lg mb-6 leading-relaxed">
-                  직접 방문하지 않고도 스마트폰이나 PC로 방 내부 구석구석, 욕실과 베란다 구조, 주방 분리 여부까지 디테일하게 관찰할 수 있는 서비스입니다.
-                </p>
-                <button 
-                  onClick={() => setShowVrModal(true)}
-                  className="w-full sm:w-auto px-10 py-4 bg-[#ff6600] text-white rounded-xl font-black text-lg hover:bg-[#e65c00] transition-all transform hover:scale-[1.01] shadow-md flex justify-center items-center gap-3"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12A10 10 0 0 0 22 12"/><path d="M2 12A10 10 0 0 1 22 12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  360 VR 투어 시작하기
-                </button>
+              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm max-w-5xl mx-auto">
+                <VrViewer 
+                  imageUrl={selectedProperty.vrUrl} 
+                  propertyName={`${selectedProperty.name} ${selectedProperty.room}호`}
+                  propertyAddr={`구미시 ${selectedProperty.addr}`}
+                />
               </div>
             ) : (
               <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 text-center max-w-4xl mx-auto">
@@ -1307,33 +1294,6 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
       </footer>
       
       {/* VR Modal */}
-      {showVrModal && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 sm:bg-black/80 sm:p-6 backdrop-blur-sm">
-          <div className="bg-white sm:rounded-xl shadow-2xl w-full sm:max-w-6xl h-full sm:h-auto max-h-[100dvh] flex flex-col relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 bg-white relative z-10 shrink-0">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">{selectedProperty.name} 360 VR 투어</h3>
-              <button 
-                onClick={() => setShowVrModal(false)}
-                className="p-2 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-full transition-colors flex items-center justify-center shrink-0"
-                title="닫기"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
-            </div>
-            
-            {/* Body */}
-            <div className="w-full bg-black flex-1 overflow-hidden relative min-h-[350px] sm:min-h-[550px]">
-              <VrViewer 
-                imageUrl={selectedProperty.vrUrl} 
-                propertyName={`${selectedProperty.name} ${selectedProperty.room}호`}
-                propertyAddr={`구미시 ${selectedProperty.addr}`}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Notice Detail Modal */}
       {selectedNotice && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
