@@ -13,6 +13,8 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
   const viewerRef = useRef<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Extract URLs from string (handle missing newlines by splitting on http)
   const urls = imageUrl 
@@ -21,53 +23,87 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         .map(u => u.trim())
         .filter(u => u.length > 0)
         .map(u => {
-          // Proxy through our backend to avoid CORS issues with Firebase Storage
-          if (u.includes('firebasestorage.googleapis.com')) {
+          // Proxy all external URLs through our backend to avoid CORS issues and resize massive files
+          if (u.startsWith('http') && !u.includes(window.location.host)) {
             return `${window.location.origin}/api/proxy-image?url=${encodeURIComponent(u)}`;
           }
           return u;
         })
-    : ['https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg'];
+    : ['/sphere.jpg'];
     
   if (urls.length === 0) {
-    urls.push('https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg');
+    urls.push('/sphere.jpg');
   }
 
   useEffect(() => {
     if (!containerRef.current) return;
     setError(null);
+    setIsLoaded(false);
 
     let viewerInstance: any = null;
 
-    try {
-      viewerInstance = new Viewer({
-        container: containerRef.current,
-        panorama: urls[0],
-        touchmoveTwoFingers: false,
-        mousewheel: true,
-        loadingImg: 'https://photo-sphere-viewer-data.netlify.app/assets/loader.gif',
-        navbar: [
-          'autorotate',
-          'zoom',
-          'move',
-          'download',
-          'fullscreen',
-        ],
-      });
+    // Delay initialization to ensure the container is fully available
+    const initTimer = setTimeout(() => {
+      try {
+        viewerInstance = new Viewer({
+          container: containerRef.current!,
+          panorama: urls[0],
+          touchmoveTwoFingers: false,
+          mousewheel: true,
+          navbar: [
+            'zoom',
+            'move',
+            'download',
+            'fullscreen',
+          ],
+          defaultPitch: 0,
+          minPitch: 0.5,
+        });
 
-      viewerRef.current = viewerInstance;
+        // Kick-start rendering with a small delay to ensure the container is measured correctly
+        setTimeout(() => {
+          if (viewerInstance) viewerInstance.resize();
+        }, 500);
 
-      viewerInstance.addEventListener('panorama-error', (e: any) => {
-        console.error('PSV: panorama-error fired:', e);
-        setError('360 이미지를 불러올 수 없습니다. 네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.');
-      });
+        viewerRef.current = viewerInstance;
 
-    } catch (err: any) {
-      console.error('Failed to initialize photo-sphere-viewer:', err);
-      setError('360 VR 뷰어를 초기화하지 못했습니다. WebGL 지원 여부를 확인하세요.');
-    }
+        // Log event firing to diagnose issues
+        viewerInstance.addEventListener('panorama-error', (e: any) => {
+          console.error('PSV: panorama-error fired:', e);
+          setError('360 이미지를 불러올 수 없습니다. 네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.');
+        });
+
+        viewerInstance.addEventListener('position-updated', () => {
+          setHasInteracted(true);
+        });
+        viewerInstance.addEventListener('zoom-updated', () => {
+          setHasInteracted(true);
+        });
+        viewerInstance.addEventListener('ready', () => {
+          console.log('PSV: ready fired');
+          setIsLoaded(true);
+        });
+        viewerInstance.addEventListener('panorama-loaded', () => {
+          console.log('PSV: panorama-loaded fired');
+          setIsLoaded(true);
+        });
+        viewerInstance.addEventListener('render', () => {
+          console.log('PSV: render fired');
+          setIsLoaded(true);
+        });
+
+        const handleInteraction = () => setHasInteracted(true);
+        containerRef.current?.addEventListener('mousedown', handleInteraction, { once: true });
+        containerRef.current?.addEventListener('touchstart', handleInteraction, { once: true });
+
+      } catch (err: any) {
+        console.error('Failed to initialize photo-sphere-viewer:', err);
+        setError('360 VR 뷰어를 초기화하지 못했습니다. WebGL 지원 여부를 확인하세요.');
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(initTimer);
       if (viewerInstance) {
         try {
           viewerInstance.destroy();
@@ -109,10 +145,19 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
       )}
 
 
-      <div ref={containerRef} className="w-full h-full aspect-[2/1] min-h-[350px] sm:min-h-[500px]" />
+      <div ref={containerRef} className="w-full h-full" />
+
+      {/* Loading Overlay */}
+      {!isLoaded && !error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-20 backdrop-blur-sm">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <span className="text-white font-bold tracking-wide">360° 고화질 파노라마 불러오는 중...</span>
+          <span className="text-gray-300 text-xs mt-2">잠시만 기다려주세요.</span>
+        </div>
+      )}
 
       {/* Transparent overlay content */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center z-10">
+      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center z-10 transition-opacity duration-500 ${hasInteracted || !isLoaded ? 'opacity-0' : 'opacity-100'}`}>
         <div className="bg-[#0b1f3c] text-white flex flex-col items-center justify-center w-28 h-28 sm:w-32 sm:h-32 rounded-2xl shadow-xl mb-2 opacity-95">
           <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -131,14 +176,14 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
       </div>
 
       {/* Drag text instruction */}
-      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 pointer-events-none flex flex-col items-center z-10 animate-pulse text-[#156e52] opacity-90 drop-shadow-md">
+      <div className="absolute bottom-48 left-1/2 transform -translate-x-1/2 pointer-events-none flex flex-col items-center z-10 text-[#156e52] drop-shadow-md opacity-90">
         <div className="flex items-center gap-2 mb-2">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="#d9f2e6" stroke="#0e533d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M14 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"/><path d="M10 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5"/><path d="M11 14h1v1"/><path d="M10 11V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v6.5a2 2 0 0 1-.5.73l-1.38 1.38A2 2 0 0 0 4.7 19.3L8 23.5"/><path d="M20 14.5A2.5 2.5 0 0 1 17.5 17H8"/>
           </svg>
           <span className="font-extrabold text-2xl tracking-wide font-black">드래그하여 360° VR 투어</span>
         </div>
-        <span className="font-extrabold text-2xl tracking-wide font-black">태왕공인중개사사무소</span>
+        <span className="font-extrabold text-2xl tracking-wide font-black">태왕공인중개사사무소 054-455-6789</span>
       </div>
 
       {/* Navigation Arrows */}

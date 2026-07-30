@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
+    <style>#viewer { width: 100vw; height: 100vh; }</style>
+</head>
+<body>
+    <div id="viewer"></div>
+    <script type="module">
+        import { Viewer } from 'https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.module.js';
+        new Viewer({
+            container: document.querySelector('#viewer'),
+            panorama: 'https://photo-sphere-viewer-data.netlify.app/assets/sphere.jpg'
+        });
+    </script>
+</body>
+</html>

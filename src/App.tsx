@@ -944,10 +944,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const navigate = useNavigate();
   const decodedId = id ? decodeURIComponent(id).trim() : '';
   const selectedProperty = properties.find(p => 
-    (p.id && String(p.id).trim() === decodedId) ||
-    (p.name && p.room && `${p.name}_${p.room}` === decodedId) ||
-    (p.name && p.name === decodedId) ||
-    (p.addr && p.addr.includes(decodedId))
+    (p.id && String(p.id).trim() === decodedId)
   );
   const [mapUrl, setMapUrl] = useState<string>('');
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
@@ -1132,7 +1129,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               4. 360 VR 투어
             </h3>
             {selectedProperty.vr ? (
-              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm max-w-5xl mx-auto">
+              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm aspect-[2/1]">
                 <VrViewer 
                   imageUrl={selectedProperty.vrUrl} 
                   propertyName={`${selectedProperty.name} ${selectedProperty.room}호`}
