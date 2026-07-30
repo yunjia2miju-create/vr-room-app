@@ -1,0 +1,9 @@
+{
+  "firestore": {
+    "database": "ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a",
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
