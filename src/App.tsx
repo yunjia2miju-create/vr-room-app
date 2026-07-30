@@ -914,19 +914,19 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-medium">
               <span>명칭 : 태왕공인중개사사무소</span>
               <span className="hidden md:block w-px h-3 bg-gray-300"></span>
-              <span>성명 : 유정화</span>
+              <span>대표 : 유정화</span>
               <span className="hidden md:block w-px h-3 bg-gray-300"></span>
               <span>등록번호 : 47190-2016-00027</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span>소재지 : 구미시 송정대로 6길18 (송정동 472-10번지)</span>
+              <span>위치 : 구미시 송정대로 6길18 (송정동 472-10번지)</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-bold text-gray-700">
-              <span>연락처 : 054-455-6789, 010-7590-0111</span>
+              <span>문의처 : 054-455-6789, 010-7590-0111</span>
             </div>
             <div className="mt-2 text-gray-400 font-medium text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 border-t border-gray-100 pt-4">
-              <span>Copyright © 태왕공인중개사사무소. All right reserved.</span>
-              <Link to="/admin" className="text-gray-400 hover:text-[#ff6600] underline font-bold transition-colors">관리자 로그인</Link>
+              <span>Copyright © 태왕공인중개사사무소. 좋습니다.</span>
+              <Link to="/admin" className="text-gray-400 hover:text-[#ff6600] underline font-bold transition-colors">회원가입</Link>
             </div>
           </div>
         </div>
@@ -1269,19 +1269,19 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-medium">
               <span>명칭 : 태왕공인중개사사무소</span>
               <span className="hidden md:block w-px h-3 bg-gray-300"></span>
-              <span>성명 : 유정화</span>
+              <span>대표 : 유정화</span>
               <span className="hidden md:block w-px h-3 bg-gray-300"></span>
               <span>등록번호 : 47190-2016-00027</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span>소재지 : 구미시 송정대로 6길18 (송정동 472-10번지)</span>
+              <span>위치 : 구미시 송정대로 6길18 (송정동 472-10번지)</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-bold text-gray-700">
-              <span>연락처 : 054-455-6789, 010-7590-0111</span>
+              <span>문의처 : 054-455-6789, 010-7590-0111</span>
             </div>
             <div className="mt-2 text-gray-400 font-medium text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 border-t border-gray-100 pt-4">
-              <span>Copyright © 태왕공인중개사사무소. All right reserved.</span>
-              <Link to="/admin" className="text-gray-400 hover:text-[#ff6600] underline font-bold transition-colors">관리자 로그인</Link>
+              <span>Copyright © 태왕공인중개사사무소. 좋습니다.</span>
+              <Link to="/admin" className="text-gray-400 hover:text-[#ff6600] underline font-bold transition-colors">회원가입</Link>
             </div>
           </div>
         </div>

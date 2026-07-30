@@ -57,7 +57,6 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
             'fullscreen',
           ],
           defaultPitch: 0,
-          minPitch: 0.5,
         });
 
         // Kick-start rendering with a small delay to ensure the container is measured correctly
