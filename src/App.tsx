@@ -411,9 +411,6 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   </table>
                   
                   {/* Tooltip */}
-                  <div className="absolute bottom-4 left-4 bg-[#555] text-white text-[12px] px-3 py-1.5 rounded flex items-center">
-                    매물 행을 선택하시면 해당 지역/종류의 매물만 하단 표에 필터링됩니다.
-                  </div>
                 </div>
               </div>
 
