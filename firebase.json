@@ -1,4 +1,18 @@
 {
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
   "firestore": {
     "database": "ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a",
     "rules": "firestore.rules"
