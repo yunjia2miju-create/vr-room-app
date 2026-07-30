@@ -23,9 +23,9 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         .map(u => u.trim())
         .filter(u => u.length > 0)
         .map(u => {
-          // Use public CORS proxy since we are on static Firebase Hosting
+          // Use internal proxy to bypass CORS and automatically optimize/resize large 360 photos
           if (u.startsWith('http') && !u.includes(window.location.host)) {
-            return `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`;
+            return `/api/proxy-image?url=${encodeURIComponent(u)}`;
           }
           return u;
         })
