@@ -1242,8 +1242,22 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
                 <div className="mt-4 sm:mt-6">
                   <div className="text-gray-500 font-medium mb-2 sm:mb-3 text-sm sm:text-base">20. 상세설명</div>
-                  <div className="bg-white p-4 sm:p-5 rounded border border-gray-200 text-gray-700 text-xs sm:text-sm leading-relaxed space-y-3 sm:space-y-4 whitespace-pre-line">
-                    {descriptionText}
+                  <div className="bg-white p-4 sm:p-5 rounded border border-gray-200 text-gray-700 text-xs sm:text-sm leading-relaxed space-y-3 sm:space-y-4 whitespace-pre-wrap">
+                    {(() => {
+                      let text = typeof descriptionText === 'string' ? descriptionText.replace(/\\n/g, '\n') : descriptionText;
+                      if (typeof text === 'string' && !text.includes('\n') && text.includes('다.')) {
+                        text = text.replace(/다\.\s*/g, '다.\n\n');
+                      }
+                      if (typeof text === 'string') {
+                        return text.split('\n').map((line, i) => (
+                          <React.Fragment key={i}>
+                            {line}
+                            <br/>
+                          </React.Fragment>
+                        ));
+                      }
+                      return text;
+                    })()}
                   </div>
                 </div>
               </div>

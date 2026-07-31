@@ -22,14 +22,25 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         .split(/(?=https?:\/\/)/) // Split right before http:// or https://
         .map(u => u.trim())
         .filter(u => u.length > 0)
-        .map(u => {
-          return u;
-        })
     : ['/sphere.jpg'];
     
   if (urls.length === 0) {
     urls.push('/sphere.jpg');
   }
+
+  // Preload next and previous images for faster navigation
+  useEffect(() => {
+    if (urls.length > 1) {
+      const nextIndex = (currentIndex + 1) % urls.length;
+      const prevIndex = (currentIndex - 1 + urls.length) % urls.length;
+      
+      const img1 = new Image();
+      img1.src = urls[nextIndex];
+      
+      const img2 = new Image();
+      img2.src = urls[prevIndex];
+    }
+  }, [currentIndex, urls]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -46,6 +57,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
           panorama: urls[0],
           touchmoveTwoFingers: false,
           mousewheel: true,
+          defaultZoomLvl: 0,
           navbar: [
             'zoom',
             'move',
@@ -109,18 +121,32 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     };
   }, [imageUrl]); // Only re-init if the raw imageUrl string changes entirely
 
-  const goToNext = () => {
+  const goToNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!viewerRef.current || urls.length <= 1) return;
     const nextIndex = (currentIndex + 1) % urls.length;
     setCurrentIndex(nextIndex);
-    viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: true });
+    setError(null);
+    viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: true, zoom: 0 }).catch((err: any) => {
+      console.error('goToNext error:', err);
+    });
   };
 
-  const goToPrev = () => {
+  const goToPrev = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!viewerRef.current || urls.length <= 1) return;
     const prevIndex = (currentIndex - 1 + urls.length) % urls.length;
     setCurrentIndex(prevIndex);
-    viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: true });
+    setError(null);
+    viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: true, zoom: 0 }).catch((err: any) => {
+      console.error('goToPrev error:', err);
+    });
   };
 
   return (
@@ -186,14 +212,14 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         <>
           <button 
             onClick={goToPrev}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full transition-all z-20 backdrop-blur-sm"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full transition-all z-20 backdrop-blur-sm cursor-pointer"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           
           <button 
             onClick={goToNext}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full transition-all z-20 backdrop-blur-sm"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-3 rounded-full transition-all z-20 backdrop-blur-sm cursor-pointer"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
