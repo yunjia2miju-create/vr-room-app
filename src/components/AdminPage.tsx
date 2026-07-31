@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage, auth, googleProvider } from '../firebase';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, signOut } from 'firebase/auth';
 import { 
   Building2, 
   Plus, 
@@ -413,9 +413,16 @@ export default function AdminPage({
   };
 
   // Handle Logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
     sessionStorage.removeItem('taewang_admin_logged');
+    localStorage.removeItem('taewang_admin_logged');
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setIsLoggedIn(false);
+    navigate('/');
   };
 
   // Open form for creating
@@ -615,10 +622,22 @@ export default function AdminPage({
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden">
+      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 relative">
+        <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 overflow-hidden relative">
+          
+          {/* 회원가입 탭 바로 위 우상단 X (홈으로 가기) 버튼 */}
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="absolute top-3.5 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-all cursor-pointer shadow-sm border border-gray-200"
+            title="홈페이지로 돌아가기"
+            aria-label="닫기"
+          >
+            <X size={18} className="stroke-[2.5]" />
+          </button>
+
           {/* Tabs */}
-          <div className="flex border-b border-gray-100">
+          <div className="flex border-b border-gray-100 pr-12">
             <button className="flex-1 py-4 text-center font-bold text-[#009e73] border-b-2 border-[#009e73] flex items-center justify-center gap-2">
               <Lock size={18} />
               로그인
