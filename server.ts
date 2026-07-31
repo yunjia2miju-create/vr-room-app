@@ -65,7 +65,7 @@ async function startServer() {
           const propertyId = req.path.split('/')[2];
           const title = `태왕공인중개사사무소 - 매물 TW-${propertyId}`;
           const description = `매물번호 TW-${propertyId} 상세정보와 360 VR 투어를 확인해보세요.`;
-          const url = `https://ais-pre-rqkyhhfivaajkgmi6qbhlv-416193107872.asia-northeast1.run.app${req.path}`;
+          const url = `http://054-455-6789.com${req.path}`;
           
           html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
           html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
