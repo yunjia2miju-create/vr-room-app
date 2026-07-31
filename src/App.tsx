@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import AdminPage from './components/AdminPage';
 import VrViewer from './components/VrViewer';
+import NaverMap from './components/NaverMap';
 import { auth } from './firebase';
 
 export const PROPERTIES = [
@@ -439,23 +440,23 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
             <div className="flex flex-col text-[13px]">
               {/* Row 1: 취급 매물 */}
               <div className="flex flex-col md:flex-row border-b border-gray-100">
-                <div className="w-full md:w-32 bg-gray-50 p-3 md:p-4 font-medium text-gray-700 flex items-center md:items-start border-b md:border-b-0 md:border-r border-gray-100">
+                <div className="w-full md:w-32 bg-gray-50 p-2.5 sm:p-3 md:p-4 font-medium text-gray-700 flex items-center md:items-start border-b md:border-b-0 md:border-r border-gray-100 text-xs sm:text-sm">
                   취급 매물
                 </div>
-                <div className="flex-1 p-3 md:p-4 relative pb-12 overflow-x-auto">
-                  <table className="w-full min-w-[500px] text-center border-collapse">
+                <div className="flex-1 p-1.5 sm:p-3 md:p-4 overflow-x-auto">
+                  <table className="w-full text-center border-collapse text-xs sm:text-sm">
                     <thead>
-                      <tr className="text-gray-500 border-b border-gray-200">
-                        <th className="py-2 font-medium w-32">매물종류</th>
-                        <th className="py-2 font-medium text-left">단지/지역명</th>
-                        <th className="py-2 font-medium w-16">전체</th>
-                        <th className="py-2 font-medium w-16">매매</th>
-                        <th className="py-2 font-medium w-16">전세</th>
-                        <th className="py-2 font-medium w-16">월세</th>
-                        <th className="py-2 font-medium w-16">단기</th>
+                      <tr className="text-gray-500 border-b border-gray-200 text-[11px] sm:text-xs">
+                        <th className="py-1.5 px-0.5 sm:px-1 font-medium w-12 sm:w-28 whitespace-nowrap">매물종류</th>
+                        <th className="py-1.5 px-0.5 sm:px-1 font-medium text-left">단지/지역명</th>
+                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">전체</th>
+                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">매매</th>
+                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">전세</th>
+                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">월세</th>
+                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">단기</th>
                       </tr>
                     </thead>
-                    <tbody className="text-sm">
+                    <tbody className="text-xs sm:text-sm">
                       {groupedStats.length > 0 ? (
                         groupedStats.map((row, idx) => (
                           <tr 
@@ -472,18 +473,18 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                               }
                             }}
                           >
-                            <td className="py-3 text-gray-600">{row.type}</td>
-                            <td className="py-3 text-left text-gray-700 flex items-center gap-1.5">
-                              <span className="text-gray-900 font-medium">{row.location}</span>
+                            <td className="py-1.5 sm:py-2.5 px-0.5 sm:px-1 text-gray-600 text-[11px] sm:text-sm whitespace-nowrap">{row.type}</td>
+                            <td className="py-1.5 sm:py-2.5 px-0.5 sm:px-1 text-left text-gray-700 flex items-center gap-1 min-w-0">
+                              <span className="text-gray-900 font-medium text-[11px] sm:text-sm truncate">{row.location}</span>
                               {selectedGroupFilter?.type === row.type && selectedGroupFilter?.dong === row.dong && (
-                                <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">필터적용</span>
+                                <span className="bg-orange-500 text-white text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-bold shrink-0">필터</span>
                               )}
                             </td>
-                            <td className="py-3"><span className="text-blue-500 underline font-medium">{row.total}</span></td>
-                            <td className="py-3"><span className="text-gray-400">{row.sell}</span></td>
-                            <td className="py-3"><span className="text-gray-500 font-medium">{row.jeonse}</span></td>
-                            <td className="py-3"><span className="text-blue-500 underline font-medium">{row.monthly}</span></td>
-                            <td className="py-3"><span className="text-gray-400">{row.short}</span></td>
+                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-blue-500 underline font-medium text-[11px] sm:text-sm">{row.total}</span></td>
+                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-gray-400 text-[11px] sm:text-sm">{row.sell}</span></td>
+                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-gray-500 font-medium text-[11px] sm:text-sm">{row.jeonse}</span></td>
+                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-blue-500 underline font-medium text-[11px] sm:text-sm">{row.monthly}</span></td>
+                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-gray-400 text-[11px] sm:text-sm">{row.short}</span></td>
                           </tr>
                         ))
                       ) : (
@@ -493,8 +494,6 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                       )}
                     </tbody>
                   </table>
-                  
-                  {/* Tooltip */}
                 </div>
               </div>
 
@@ -828,8 +827,8 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
               </button>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
+            {/* Desktop Table View (lg:block) */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-center text-[13px] border-t-2 border-gray-500 min-w-[900px]">
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-50/50">
@@ -885,6 +884,109 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile & Tablet Combined Photo + Card Layout (lg:hidden) */}
+            <div className="lg:hidden flex flex-col gap-4">
+              {pagedProperties.length > 0 ? (
+                pagedProperties.map((row, idx) => {
+                  const vrImgUrl = row.vrUrl ? row.vrUrl.trim().split('\n')[0].trim() : '/sphere.jpg';
+                  const listingIdText = row.listingNumber || (row.id?.toString().startsWith('TW-') ? row.id : `TW-${row.id}`);
+
+                  return (
+                    <div 
+                      key={idx}
+                      onClick={() => navigate('/property/' + row.id)}
+                      className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col overflow-hidden"
+                    >
+                      {/* Top: Generous 360 VR Photo Preview Container (Dynamic 2:1 aspect ratio for 360 panoramas) */}
+                      <div className="relative w-full aspect-[2/1] bg-gray-900 overflow-hidden group">
+                        <img 
+                          src={vrImgUrl} 
+                          alt={`${row.name} 360 VR`} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-95"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/sphere.jpg';
+                          }}
+                        />
+                        
+                        {/* Overlay Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/40 pointer-events-none"></div>
+
+                        {/* Top Badges over image */}
+                        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 z-10 pointer-events-none">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-md border border-white/20">
+                              매물번호 {listingIdText}
+                            </span>
+                            <span className="bg-[#ff6600] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-xs">
+                              {row.type}
+                            </span>
+                          </div>
+                          {row.vr && (
+                            <span className="bg-[#0f223d] text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md border border-blue-400/30">
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                              360° VR
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Center VR badge/icon overlay (Compact & Sleek) */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white pointer-events-none z-10">
+                          <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30 flex items-center gap-1.5 shadow-md">
+                            <Vr360LogoIcon className="w-5 h-5 text-white shrink-0" />
+                            <span className="text-xs font-bold text-orange-200 tracking-wide">360° VR 터치하여 감상</span>
+                          </div>
+                        </div>
+
+                        {/* Bottom image overlay caption */}
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10 text-white pointer-events-none">
+                          <div className="font-extrabold text-base sm:text-lg drop-shadow-md">
+                            {row.name} {isLoggedIn && row.room ? `${row.room}호` : ''}
+                          </div>
+                          <div className="text-xs text-gray-200 drop-shadow-sm flex items-center gap-1">
+                            <span>📍 구미시 {formatAddress(row.addr, isLoggedIn)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom: Property Specs & Details */}
+                      <div className="p-4 flex flex-col gap-3">
+                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-700 bg-orange-50/40 p-3 rounded-xl border border-orange-100">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-gray-400 shrink-0 font-medium">보증금:</span>
+                            <span className="font-bold text-gray-900 text-sm">{row.deposit || '-'} 만원</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-gray-400 shrink-0 font-medium">월세:</span>
+                            <span className="font-bold text-[#ff6600] text-sm">{row.rent || '-'} 만원</span>
+                          </div>
+                          {row.note && (
+                            <div className="col-span-2 flex items-start gap-1.5 text-gray-600 pt-1.5 border-t border-orange-200/60 mt-0.5">
+                              <span className="text-gray-400 shrink-0 font-medium">📝 비고:</span>
+                              <span className="truncate">{row.note}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Full Width Action Button */}
+                        <Link 
+                          to={`/property/${row.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full text-center bg-[#ff6600] hover:bg-[#e65c00] text-white text-xs sm:text-sm font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 mt-0.5"
+                        >
+                          <span>360° VR 투어 보기</span>
+                          <span>→</span>
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-12 bg-white rounded-xl border border-gray-200 text-gray-400 text-center text-sm font-medium">
+                  조건에 일치하는 매물이 없습니다.<br />검색 조건을 변경하거나 필터를 초기화해 주세요.
+                </div>
+              )}
             </div>
 
             {/* Pagination */}
@@ -1020,6 +1122,16 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
   );
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPosts: any[] }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -1033,6 +1145,10 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
 
   const listingNo = selectedProperty?.listingNumber || (selectedProperty?.id?.toString().startsWith('TW-') ? selectedProperty.id : `TW-${selectedProperty?.id}`);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   useEffect(() => {
     if (!selectedProperty) return;
@@ -1124,51 +1240,12 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <span>2. 위치 및 지도</span>
               <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
-            <div className="w-full aspect-[16/9] md:aspect-[2/1] min-h-[260px] bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 shadow-sm">
-              {loadingMap ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-[#f8f9fa] z-10">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6600] mb-3"></div>
-                  <span className="font-medium text-xs sm:text-sm text-gray-500">지도를 불러오는 중입니다...</span>
-                </div>
-              ) : mapUrl ? (
-                <>
-                  <iframe 
-                    title="Property Location Map"
-                    src={mapUrl} 
-                    className="absolute inset-0 w-full h-full z-0 bg-white border-none" 
-                    allowFullScreen
-                  ></iframe>
-                  {/* Dark gradient at the bottom to make the button text stand out perfectly */}
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent z-10 pointer-events-none"></div>
-                </>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gray-50 p-6 text-center z-10">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3 text-gray-400">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                  <span className="font-bold text-gray-800 text-sm mb-1">{formatAddress(selectedProperty.addr, isLoggedIn)}</span>
-                  <span className="text-xs text-gray-500 max-w-[280px]">
-                    지도를 직접 불러올 수 없습니다.<br/>아래 네이버 지도 버튼을 눌러 위치를 확인해주세요.
-                  </span>
-                </div>
-              )}
-              
-              {/* Naver Map Button Overlay */}
-              <div className="absolute bottom-4 left-4 right-4 z-20 sm:max-w-xs sm:left-auto">
-                <a 
-                  href={`https://map.naver.com/v5/search/${encodeURIComponent('구미시 ' + selectedProperty.addr)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center gap-2 bg-[#03C75A] text-white py-3 px-4 rounded-lg font-bold text-sm shadow-md hover:bg-[#02b350] hover:shadow-lg transition-all text-center"
-                >
-                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
-                  네이버 지도로 열기 & 길찾기
-                </a>
-              </div>
-            </div>
+            <NaverMap 
+              addr={selectedProperty.addr} 
+              name={selectedProperty.name} 
+              listingNo={listingNo}
+              room={isLoggedIn ? selectedProperty.room : undefined}
+            />
           </div>
 
           {/* 3. 매물 상세정보 */}
@@ -1240,14 +1317,14 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
           </div>
 
           {/* 4. 360 VR 투어 시작하기 */}
-          <div className="p-6 md:p-8 border-b border-gray-100 bg-orange-50/10">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center flex-wrap gap-2">
+          <div className="p-4 sm:p-6 md:p-8 border-b border-gray-100 bg-orange-50/10">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center flex-wrap gap-2">
               <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
               <span>4. 360 VR 투어</span>
               <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             {selectedProperty.vr ? (
-              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm aspect-[2/1]">
+              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm h-[420px] sm:h-[500px] md:h-[560px] lg:h-auto lg:aspect-[2/1]">
                 <VrViewer 
                   imageUrl={selectedProperty.vrUrl} 
                   propertyName={`${selectedProperty.name}${isLoggedIn && selectedProperty.room ? ' ' + selectedProperty.room + '호' : ''}`}
@@ -1609,24 +1686,27 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Home properties={properties} boardPosts={boardPosts} />} />
-      <Route path="/property/:id" element={<PropertyDetail properties={properties} boardPosts={boardPosts} />} />
-      <Route 
-        path="/admin" 
-        element={
-          <AdminPage 
-            properties={properties} 
-            onAddProperty={handleAddProperty}
-            onUpdateProperty={handleUpdateProperty}
-            onDeleteProperty={handleDeleteProperty}
-            boardPosts={boardPosts}
-            onAddPost={handleAddPost}
-            onUpdatePost={handleUpdatePost}
-            onDeletePost={handleDeletePost}
-          />
-        } 
-      />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Home properties={properties} boardPosts={boardPosts} />} />
+        <Route path="/property/:id" element={<PropertyDetail properties={properties} boardPosts={boardPosts} />} />
+        <Route 
+          path="/admin" 
+          element={
+            <AdminPage 
+              properties={properties} 
+              onAddProperty={handleAddProperty}
+              onUpdateProperty={handleUpdateProperty}
+              onDeleteProperty={handleDeleteProperty}
+              boardPosts={boardPosts}
+              onAddPost={handleAddPost}
+              onUpdatePost={handleUpdatePost}
+              onDeletePost={handleDeletePost}
+            />
+          } 
+        />
+      </Routes>
+    </>
   );
 }

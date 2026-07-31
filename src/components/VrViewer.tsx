@@ -48,6 +48,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     setIsLoaded(false);
 
     let viewerInstance: any = null;
+    let resizeObserver: ResizeObserver | null = null;
 
     // Delay initialization to ensure the container is fully available
     const initTimer = setTimeout(() => {
@@ -60,8 +61,6 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
           defaultZoomLvl: 0,
           navbar: [
             'zoom',
-            'move',
-            'download',
             'fullscreen',
           ],
           defaultPitch: 0,
@@ -70,9 +69,23 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         // Kick-start rendering with a small delay to ensure the container is measured correctly
         setTimeout(() => {
           if (viewerInstance) viewerInstance.resize();
-        }, 500);
+        }, 300);
 
         viewerRef.current = viewerInstance;
+
+        // Automatically handle container size changes (e.g., orientation change or responsive layout adjustments)
+        if (typeof window !== 'undefined' && 'ResizeObserver' in window && containerRef.current) {
+          resizeObserver = new ResizeObserver(() => {
+            if (viewerInstance) {
+              try {
+                viewerInstance.resize();
+              } catch (e) {
+                // ignore resize errors during teardown
+              }
+            }
+          });
+          resizeObserver.observe(containerRef.current);
+        }
 
         // Log event firing to diagnose issues
         viewerInstance.addEventListener('panorama-error', (e: any) => {
@@ -111,6 +124,9 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
 
     return () => {
       clearTimeout(initTimer);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (viewerInstance) {
         try {
           viewerInstance.destroy();
@@ -197,14 +213,14 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
       </div>
 
       {/* Drag text instruction */}
-      <div className="absolute bottom-48 left-1/2 transform -translate-x-1/2 pointer-events-none flex flex-col items-center z-10 text-[#156e52] drop-shadow-md opacity-90">
-        <div className="flex items-center gap-2 mb-2">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="#d9f2e6" stroke="#0e533d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="absolute bottom-16 sm:bottom-28 md:bottom-36 lg:bottom-48 left-1/2 transform -translate-x-1/2 pointer-events-none flex flex-col items-center z-10 text-[#156e52] drop-shadow-md opacity-90 w-full px-2 text-center">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+          <svg className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 shrink-0" viewBox="0 0 24 24" fill="#d9f2e6" stroke="#0e533d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M14 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"/><path d="M10 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5"/><path d="M11 14h1v1"/><path d="M10 11V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v6.5a2 2 0 0 1-.5.73l-1.38 1.38A2 2 0 0 0 4.7 19.3L8 23.5"/><path d="M20 14.5A2.5 2.5 0 0 1 17.5 17H8"/>
           </svg>
-          <span className="font-extrabold text-2xl tracking-wide font-black">드래그하여 360° VR 투어</span>
+          <span className="font-extrabold text-sm sm:text-xl lg:text-2xl tracking-wide font-black whitespace-nowrap">드래그하여 360° VR 투어</span>
         </div>
-        <span className="font-extrabold text-2xl tracking-wide font-black">태왕공인중개사사무소 054-455-6789</span>
+        <span className="font-extrabold text-xs sm:text-lg lg:text-2xl tracking-wide font-black whitespace-nowrap">태왕공인중개사사무소 054-455-6789</span>
       </div>
 
       {/* Navigation Arrows */}
