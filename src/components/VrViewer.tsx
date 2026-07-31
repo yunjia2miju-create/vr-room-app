@@ -23,10 +23,6 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         .map(u => u.trim())
         .filter(u => u.length > 0)
         .map(u => {
-          // Proxy all external URLs through our backend to avoid CORS issues and resize massive files
-          if (u.startsWith('http') && !u.includes(window.location.host)) {
-            return `${window.location.origin}/api/proxy-image?url=${encodeURIComponent(u)}`;
-          }
           return u;
         })
     : ['/sphere.jpg'];
