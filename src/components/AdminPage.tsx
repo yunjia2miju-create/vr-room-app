@@ -722,7 +722,7 @@ export default function AdminPage({
         <div className="w-full max-w-[1536px] mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Building2 size={24} className="text-[#ff6600]" />
-            <h1 className="text-lg md:text-xl font-black tracking-tight">태왕공인중개사 <span className="text-[#ff6600] text-sm font-semibold ml-2">관리자 시스템</span></h1>
+            <h1 className="text-lg md:text-xl font-black tracking-tight">태왕공인중개사사무소 <span className="text-[#ff6600] text-sm font-semibold ml-2">관리자 시스템</span></h1>
           </div>
           
           <div className="flex items-center gap-4">

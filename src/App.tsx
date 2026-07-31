@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import AdminPage from './components/AdminPage';
 import VrViewer from './components/VrViewer';
+import { auth } from './firebase';
 
 export const PROPERTIES = [
   { id: '1', mgt: '태왕', name: '크라운빌', addr: '사곡동 422-168', room: '501', type: '미투', contract: '월', deposit: '300', rent: '30', phone: '010-7590-0111', note: '출비 : 1543#', vr: true },
@@ -27,8 +28,85 @@ import {
   X 
 } from 'lucide-react';
 
+function getTodayDateString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+const Vr360LogoIcon = ({ className = "w-8 h-8 md:w-9 md:h-9" }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0f223d" />
+    <rect x="61" y="26" width="6" height="13" rx="1" fill="#c8d6e5" />
+    <path
+      d="M50 20 L20 46 H25 V79 C25 80.6 26.3 82 27.9 82 H72.1 C73.7 82 75 80.6 75 79 V46 H80 L50 20 Z"
+      fill="#c8d6e5"
+    />
+    <text
+      x="50"
+      y="65"
+      fill="#0f223d"
+      fontSize="24"
+      fontWeight="900"
+      fontFamily="system-ui, -apple-system, sans-serif"
+      textAnchor="middle"
+      letterSpacing="-0.5"
+    >
+      360
+    </text>
+  </svg>
+);
+
+
+export function formatAddress(addr: string, isLoggedIn: boolean) {
+  if (!addr) return '';
+  if (isLoggedIn) return addr;
+  // Non-logged in user: remove lot number (지번) e.g. "봉곡동 205-5" -> "봉곡동"
+  return addr.replace(/\s+\d+([-\d]+)?(?=\s|\(|$)/g, '').trim();
+}
+
+function useIsLoggedIn() {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return sessionStorage.getItem('taewang_admin_logged') === 'true' || !!auth.currentUser;
+  });
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkLogin = () => {
+      const logged = sessionStorage.getItem('taewang_admin_logged') === 'true' || !!auth.currentUser;
+      setIsLoggedIn(logged);
+    };
+
+    checkLogin();
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        sessionStorage.setItem('taewang_admin_logged', 'true');
+        setIsLoggedIn(true);
+      } else {
+        checkLogin();
+      }
+    });
+
+    window.addEventListener('storage', checkLogin);
+    window.addEventListener('focus', checkLogin);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('storage', checkLogin);
+      window.removeEventListener('focus', checkLogin);
+    };
+  }, [location]);
+
+  return isLoggedIn;
+}
+
 function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[] }) {
   const navigate = useNavigate();
+  const isLoggedIn = useIsLoggedIn();
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
 
   // Search & Filter States
@@ -104,6 +182,15 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
       }
     });
     return Array.from(dongs).sort();
+  }, [properties]);
+
+  const uniqueTypes = React.useMemo(() => {
+    const types = new Set<string>();
+    properties.forEach(p => {
+      const type = p.type || '원룸';
+      types.add(type);
+    });
+    return Array.from(types).sort();
   }, [properties]);
 
   // Handle filter reset
@@ -220,17 +307,14 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
             <div className="flex items-center gap-4 md:gap-10 w-full sm:w-auto justify-between sm:justify-start">
               {/* Logo */}
               <Link to="/" className="flex items-center gap-2 text-[#ff6600] font-black text-xl md:text-2xl tracking-tighter hover:opacity-95 transition-opacity">
-                <Building2 size={24} className="text-[#ff6600] md:w-7 md:h-7" />
-                <span>태왕공인중개사</span>
+                <Vr360LogoIcon className="w-8 h-8 md:w-9 md:h-9 shrink-0" />
+                <span>태왕공인중개사사무소</span>
               </Link>
               
               {/* Navigation */}
               <nav className="flex gap-8 text-[15px] font-medium text-gray-600">
                 <a href="#" className="hover:text-gray-900 transition-colors hidden">임장활동</a>
-                <div className="relative">
-                  <a href="#" className="text-[#ff6600] font-bold">360 VR 광고 매물공실현황</a>
-                  <div className="absolute -bottom-5 left-0 w-full h-[3px] bg-[#ff6600]"></div>
-                </div>
+
                 <a href="#" className="hover:text-gray-900 transition-colors relative hidden">
                   사진관리
                   <span className="absolute -top-3 -right-10 bg-gray-700 text-white text-[10px] px-1.5 py-0.5 rounded-sm whitespace-nowrap">무료 신청</span>
@@ -426,9 +510,9 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                     className="border border-gray-300 rounded px-3 py-1.5 outline-none focus:border-[#ff6600] w-32 bg-white"
                   >
                     <option value="전체">종류 (전체)</option>
-                    <option value="원룸">원룸</option>
-                    <option value="미투">미투</option>
-                    <option value="투룸">투룸</option>
+                    {uniqueTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
                   <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-28 bg-gray-50 text-gray-400">
                     <option>경북</option>
@@ -576,7 +660,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 <div className="p-1.5 bg-orange-50 text-[#ff6600] rounded-lg">
                   <FileText size={18} className="stroke-[2.5]" />
                 </div>
-                <h3 className="font-bold text-base md:text-lg text-gray-900">태왕 알림판 & 공지사항</h3>
+                <h3 className="font-bold text-base md:text-lg text-gray-900">태왕공인중개사 & 공지사항</h3>
               </div>
               <span className="text-xs text-gray-400 font-medium hidden sm:inline">최신 공지 및 임대인/임차인 유용한 소식을 확인하세요</span>
             </div>
@@ -615,7 +699,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                           {post.title}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">{post.createdAt}</span>
+                      <span className="text-xs text-gray-400 shrink-0">{getTodayDateString()}</span>
                     </div>
                   ))
               ) : (
@@ -649,7 +733,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   <h4 className="text-lg font-bold text-gray-900 leading-snug">
                     {selectedNotice.title}
                   </h4>
-                  <p className="text-xs text-gray-400 font-medium">등록일 : {selectedNotice.createdAt}</p>
+                  <p className="text-xs text-gray-400 font-medium">등록일 : {getTodayDateString()}</p>
                   <div className="border-t border-gray-100 pt-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto">
                     {selectedNotice.content}
                   </div>
@@ -771,7 +855,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                       >
                         <td className="py-4 text-gray-400">TW-{row.id}</td>
                         <td className="py-4 text-gray-900 font-bold">{row.name}</td>
-                        <td className="py-4 text-gray-700 text-left px-2">{row.addr}</td>
+                        <td className="py-4 text-gray-700 text-left px-2">{formatAddress(row.addr, isLoggedIn)}</td>
                         <td className="py-4 text-gray-700">
                           <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">{row.type}</span>
                         </td>
@@ -939,6 +1023,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
 function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPosts: any[] }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isLoggedIn = useIsLoggedIn();
   const decodedId = id ? decodeURIComponent(id).trim() : '';
   const selectedProperty = properties.find(p => 
     (p.id && String(p.id).trim() === decodedId)
@@ -974,8 +1059,8 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
             <div className="flex items-center gap-4 md:gap-10 w-full sm:w-auto justify-between sm:justify-start">
               {/* Logo */}
               <Link to="/" className="flex items-center gap-2 text-[#ff6600] font-black text-xl md:text-2xl tracking-tighter hover:opacity-95 transition-opacity">
-                <Building2 size={24} className="text-[#ff6600] md:w-7 md:h-7" />
-                <span>태왕공인중개사</span>
+                <Vr360LogoIcon className="w-8 h-8 md:w-9 md:h-9 shrink-0" />
+                <span>태왕공인중개사사무소</span>
               </Link>
               
               {/* Navigation */}
@@ -1019,7 +1104,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
                 {selectedProperty.name} <span className="text-[#ff6600] text-xl md:text-2xl">{selectedProperty.room}호</span>
               </h2>
-              <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-lg">{selectedProperty.addr}</p>
+              <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-lg">{formatAddress(selectedProperty.addr, isLoggedIn)}</p>
             </div>
             <div className="text-left sm:text-right mt-2 sm:mt-0">
               <span className="bg-orange-50 text-[#ff6600] border border-orange-200 px-4 py-2 rounded-full text-xs sm:text-sm font-bold">
@@ -1057,7 +1142,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  <span className="font-bold text-gray-800 text-sm mb-1">{selectedProperty.addr}</span>
+                  <span className="font-bold text-gray-800 text-sm mb-1">{formatAddress(selectedProperty.addr, isLoggedIn)}</span>
                   <span className="text-xs text-gray-500 max-w-[280px]">
                     지도를 직접 불러올 수 없습니다.<br/>아래 네이버 지도 버튼을 눌러 위치를 확인해주세요.
                   </span>
@@ -1169,7 +1254,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                           }`}>
                             {post.category || '공지'}
                           </span>
-                          <span className="text-[11px] text-gray-400">{post.createdAt}</span>
+                          <span className="text-[11px] text-gray-400">{getTodayDateString()}</span>
                         </div>
                         <h4 className="font-bold text-gray-800 text-sm line-clamp-2 leading-relaxed mb-4">
                           {post.title}
@@ -1189,7 +1274,9 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
           {/* 6. 중개대상물표시사항 */}
           {(() => {
             const d = selectedProperty.details || {};
-            const addrDetail = d.addr_detail || `경상북도 구미시 ${selectedProperty.addr} (${selectedProperty.name})`;
+            const addrDisplay = formatAddress(selectedProperty.addr, isLoggedIn);
+            const rawAddrDetail = d.addr_detail || `경상북도 구미시 ${selectedProperty.addr} (${selectedProperty.name})`;
+            const addrDetail = isLoggedIn ? rawAddrDetail : formatAddress(rawAddrDetail, isLoggedIn);
             const landlordConfirm = d.landlord_confirm || "확인";
             const verifiedStatus = d.verified_status || "확인";
             const roomType = d.room_type || `${selectedProperty.type}·${selectedProperty.room ? selectedProperty.room.substring(0, 1) + '층' : '2층'}`;
@@ -1327,7 +1414,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <h4 className="text-lg font-bold text-gray-900 leading-snug">
                 {selectedNotice.title}
               </h4>
-              <p className="text-xs text-gray-400 font-medium">등록일 : {selectedNotice.createdAt}</p>
+              <p className="text-xs text-gray-400 font-medium">등록일 : {getTodayDateString()}</p>
               <div className="border-t border-gray-100 pt-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto">
                 {selectedNotice.content}
               </div>
@@ -1356,7 +1443,7 @@ const DEFAULT_POSTS = [
     title: '★ 임대인 주목! 구미 전지역 공실 360 VR 무료 촬영 서비스',
     content: '태왕공인중개사사무소에서는 공실률을 최소화하기 위해 최신 360도 VR 파노라마 무료 촬영 서비스를 지원하고 있습니다. 매물 등록 시 "360 VR 투어 연결하기"를 활성화하시거나 유선(010-7590-0111)으로 문의주시면 중개사가 직접 방문하여 촬영 후 생생한 가상 체험 화면을 등록해 드립니다.',
     important: true,
-    createdAt: '2026-07-29'
+    createdAt: getTodayDateString()
   },
   {
     id: '2',
@@ -1364,7 +1451,7 @@ const DEFAULT_POSTS = [
     title: '신뢰할 수 있는 실매물 100% 안심 보장 안내',
     content: '저희 태왕공인중개사사무소에서 보여드리는 모든 공실현황은 매일 중개사가 직접 현장 검증을 완료한 실시간 실매물입니다. 허위매물 제로(0%)를 지향하며, 가격 및 보증금 조절을 정직하게 협의 및 보장해 드립니다.',
     important: false,
-    createdAt: '2026-07-28'
+    createdAt: getTodayDateString()
   },
   {
     id: '3',
@@ -1372,7 +1459,7 @@ const DEFAULT_POSTS = [
     title: '원룸/미투 계약 고객 대상 이사비 지원 및 입주 청소 조율 혜택',
     content: '여름 시즌 맞이 태왕 단독 혜택! 저희 사무소를 통해 계약 완료하시는 모든 고객분들께 제휴 업체를 통한 입주 청소 서비스 특별 혜택 및 주거안심 선물을 무상으로 증정해 드립니다. 자세한 조율 사항은 상담 시 문의주세요.',
     important: false,
-    createdAt: '2026-07-25'
+    createdAt: getTodayDateString()
   }
 ];
 
