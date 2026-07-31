@@ -5,14 +5,14 @@ import VrViewer from './components/VrViewer';
 import { auth } from './firebase';
 
 export const PROPERTIES = [
-  { id: '1', mgt: '태왕', name: '크라운빌', addr: '사곡동 422-168', room: '501', type: '미투', contract: '월', deposit: '300', rent: '30', phone: '010-7590-0111', note: '출비 : 1543#', vr: true },
-  { id: '2', mgt: '태왕', name: '어린왕자 하나', addr: '옥계동 950', room: '301', type: '미투', contract: '월', deposit: '300', rent: '35', phone: '010-7590-0111', note: '', vr: true },
-  { id: '3', mgt: '태왕', name: '고야드', addr: '사곡동 267-54', room: '301', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '30', phone: '010-7590-0111', note: '현)4119', vr: false },
-  { id: '4', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '206', type: '미투', contract: '반전. 월 가능', deposit: '300', rent: '40', phone: '010-7590-0111', note: '승강기 있음. 보증금 월세조정가능', vr: true },
-  { id: '5', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '205', type: '미투', contract: '전세.반전. 월 가능', deposit: '300\n5,000', rent: '38\n8', phone: '010-7590-0111', note: '승강기있음. 보증금월세조정가능', vr: true },
-  { id: '6', mgt: '태왕', name: '힐링타운', addr: '송정동 26-9', room: '305', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '28', phone: '010-7590-0111', note: '즉시 입주가능', vr: false },
-  { id: '7', mgt: '태왕', name: '리치하우스', addr: '사곡동 422-56', room: '201', type: '투룸', contract: '월 가능, 풀 옵션', deposit: '300', rent: '55', phone: '010-7590-0111', note: '', vr: true },
-  { id: '8', mgt: '태왕', name: '이화빌', addr: '형곡동 192-8', room: '205', type: '미투', contract: '월 가능, 풀 옵션', deposit: '200', rent: '32', phone: '010-7590-0111', note: '', vr: true },
+  { id: '1', mgt: '태왕', name: '크라운빌', addr: '사곡동 422-168', room: '501', type: '미투', contract: '월', deposit: '300', rent: '30', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '출비 : 1543#', vr: true },
+  { id: '2', mgt: '태왕', name: '어린왕자 하나', addr: '옥계동 950', room: '301', type: '미투', contract: '월', deposit: '300', rent: '35', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
+  { id: '3', mgt: '태왕', name: '고야드', addr: '사곡동 267-54', room: '301', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '30', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '현)4119', vr: false },
+  { id: '4', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '206', type: '미투', contract: '반전. 월 가능', deposit: '300', rent: '40', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '승강기 있음. 보증금 월세조정가능', vr: true },
+  { id: '5', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '205', type: '미투', contract: '전세.반전. 월 가능', deposit: '300\n5,000', rent: '38\n8', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '승강기있음. 보증금월세조정가능', vr: true },
+  { id: '6', mgt: '태왕', name: '힐링타운', addr: '송정동 26-9', room: '305', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '28', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '즉시 입주가능', vr: false },
+  { id: '7', mgt: '태왕', name: '리치하우스', addr: '사곡동 422-56', room: '201', type: '투룸', contract: '월 가능, 풀 옵션', deposit: '300', rent: '55', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
+  { id: '8', mgt: '태왕', name: '이화빌', addr: '형곡동 192-8', room: '205', type: '미투', contract: '월 가능, 풀 옵션', deposit: '200', rent: '32', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
 ];
 
 import { 
@@ -336,7 +336,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
               <a href="#" className="flex items-center gap-1 text-[#ff6600] font-bold text-xs md:text-sm bg-orange-50 px-2 md:px-3 py-1.5 rounded-full hover:bg-orange-100 transition-colors whitespace-nowrap">
                 360 VR 투어 안내
               </a>
-              <a href="#" className="flex items-center gap-1 bg-[#ff6600] text-white px-3 md:px-4 py-1.5 rounded-full font-bold text-xs md:text-sm hover:bg-[#e65c00] transition-colors whitespace-nowrap">
+              <a href="tel:054-455-6789" className="flex items-center gap-1 bg-[#ff6600] text-white px-3 md:px-4 py-1.5 rounded-full font-bold text-xs md:text-sm hover:bg-[#e65c00] transition-colors whitespace-nowrap">
                 상담문의: 054-455-6789
               </a>
             </div>
@@ -792,7 +792,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[14px] text-gray-700 font-medium">주택관리</span>
+                <span className="text-[14px] text-gray-700 font-medium">관리부동산</span>
                 <select className="border border-gray-300 rounded px-3 py-1.5 w-24 outline-none focus:border-blue-500 text-sm bg-white">
                   <option>전체</option>
                 </select>
@@ -1032,6 +1032,8 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
 
+  const listingNo = selectedProperty?.listingNumber || (selectedProperty?.id?.toString().startsWith('TW-') ? selectedProperty.id : `TW-${selectedProperty?.id}`);
+
   useEffect(() => {
     if (!selectedProperty) return;
     
@@ -1076,7 +1078,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <Link to="/" className="flex items-center gap-1 text-[#ff6600] font-bold text-xs md:text-sm bg-orange-50 px-2 md:px-3 py-1.5 rounded-full hover:bg-orange-100 transition-colors whitespace-nowrap">
                 360 VR 투어 안내
               </Link>
-              <a href="#" className="flex items-center gap-1 bg-[#ff6600] text-white px-3 md:px-4 py-1.5 rounded-full font-bold text-xs md:text-sm hover:bg-[#e65c00] transition-colors whitespace-nowrap">
+              <a href="tel:054-455-6789" className="flex items-center gap-1 bg-[#ff6600] text-white px-3 md:px-4 py-1.5 rounded-full font-bold text-xs md:text-sm hover:bg-[#e65c00] transition-colors whitespace-nowrap">
                 상담문의: 054-455-6789
               </a>
             </div>
@@ -1101,8 +1103,10 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
           {/* 1. 건물명 & 기본 위치 */}
           <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start gap-4 bg-white">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
-                {selectedProperty.name} <span className="text-[#ff6600] text-xl md:text-2xl">{selectedProperty.room}호</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center flex-wrap gap-2 sm:gap-3">
+                <span>{selectedProperty.name}</span>
+                {isLoggedIn && <span className="text-[#ff6600] text-xl md:text-2xl">{selectedProperty.room}호</span>}
+                <span className="text-[#ff6600] text-lg sm:text-2xl font-bold ml-1">(매물번호 {listingNo})</span>
               </h2>
               <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-lg">{formatAddress(selectedProperty.addr, isLoggedIn)}</p>
             </div>
@@ -1115,9 +1119,10 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
           {/* 2. 지도 */}
           <div className="p-6 md:p-8 border-b border-gray-100">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center flex-wrap gap-2">
               <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-              2. 위치 및 지도
+              <span>2. 위치 및 지도</span>
+              <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             <div className="w-full aspect-[16/9] md:aspect-[2/1] min-h-[260px] bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 shadow-sm">
               {loadingMap ? (
@@ -1168,13 +1173,14 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
           {/* 3. 매물 상세정보 */}
           <div className="p-6 md:p-8 border-b border-gray-100">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center flex-wrap gap-2">
               <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-              3. 매물 상세 정보
+              <span>3. 매물 상세 정보</span>
+              <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-sm sm:text-base">
               <div className="flex border-b border-gray-100 pb-3 justify-between items-center">
-                <span className="text-gray-500 font-medium">주택관리</span>
+                <span className="text-gray-500 font-medium">관리부동산</span>
                 <span className="text-gray-900 font-bold">{selectedProperty.mgt}</span>
               </div>
               <div className="flex border-b border-gray-100 pb-3 justify-between items-center">
@@ -1191,9 +1197,38 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                   {selectedProperty.deposit}만 / {selectedProperty.rent}만
                 </span>
               </div>
-              <div className="flex border-b border-gray-100 pb-3 justify-between items-center md:col-span-2">
-                <span className="text-gray-500 font-medium">연락처</span>
-                <span className="text-gray-900 font-bold whitespace-pre-line">{selectedProperty.phone}</span>
+              <div className="flex border-b border-gray-100 pb-3 justify-between items-center md:col-span-2 flex-wrap gap-2">
+                <span className="text-gray-500 font-medium shrink-0">연락처</span>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end text-sm sm:text-base">
+                  <a 
+                    href="tel:054-455-6789"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-lg text-[#ff6600] font-bold transition-all text-xs sm:text-sm"
+                    title="사무실 전화 걸기"
+                  >
+                    <span className="text-gray-600 font-medium">사무실 전화:</span>
+                    <span className="text-[#ff6600] font-extrabold hover:underline">054-455-6789</span>
+                  </a>
+                  <a 
+                    href="tel:010-7590-0111"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ff6600] hover:bg-[#e65c00] text-white rounded-lg font-bold shadow-sm transition-all text-xs sm:text-sm"
+                    title="휴대폰 전화 걸기"
+                  >
+                    <span className="text-orange-100 font-medium">휴대폰:</span>
+                    <span className="font-extrabold hover:underline">010-7590-0111</span>
+                  </a>
+                  {selectedProperty.phone && 
+                   !selectedProperty.phone.includes('010-7590-0111') && 
+                   !selectedProperty.phone.includes('054-455-6789') && (
+                    <a 
+                      href={`tel:${selectedProperty.phone.replace(/[^0-9]/g, '')}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-bold transition-all text-xs sm:text-sm"
+                      title="전화 걸기"
+                    >
+                      <span className="text-gray-500 font-medium">기타:</span>
+                      <span className="hover:underline">{selectedProperty.phone}</span>
+                    </a>
+                  )}
+                </div>
               </div>
               <div className="flex flex-col pt-1 sm:pt-2 md:col-span-2">
                 <span className="text-gray-900 font-bold mb-3">매물특징 / 비고</span>
@@ -1206,16 +1241,17 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
           {/* 4. 360 VR 투어 시작하기 */}
           <div className="p-6 md:p-8 border-b border-gray-100 bg-orange-50/10">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center flex-wrap gap-2">
               <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-              4. 360 VR 투어
+              <span>4. 360 VR 투어</span>
+              <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             {selectedProperty.vr ? (
               <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm aspect-[2/1]">
                 <VrViewer 
                   imageUrl={selectedProperty.vrUrl} 
-                  propertyName={`${selectedProperty.name} ${selectedProperty.room}호`}
-                  propertyAddr={`구미시 ${selectedProperty.addr}`}
+                  propertyName={`${selectedProperty.name}${isLoggedIn && selectedProperty.room ? ' ' + selectedProperty.room + '호' : ''}`}
+                  propertyAddr={`구미시 ${formatAddress(selectedProperty.addr, isLoggedIn)}`}
                 />
               </div>
             ) : (
@@ -1227,9 +1263,10 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
           {/* 5. 태왕 알림 & 안심 공지사항 */}
           <div className="p-6 md:p-8 border-b border-gray-100 bg-gray-50/30">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center flex-wrap gap-2">
               <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-              5. 태왕 알림 & 안심 공지사항
+              <span>5. 태왕 알림 & 안심 공지사항</span>
+              <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {boardPosts && boardPosts.filter((p: any) => p.category !== '표시의무사항').length > 0 ? (
@@ -1293,15 +1330,16 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
             const structure = d.structure || "분리형";
             const duplex = d.duplex || "단층";
             const buildingUse = d.building_use || "단독주택";
-            const propertyId = `TW-${selectedProperty.id}`;
+            const propertyId = listingNo;
             const totalParking = d.total_parking || "12대";
             const descriptionText = d.description || `구미 1국가산업단지 배후 주거지역에 위치하여 공단 출퇴근 직장인분들께 최적의 접근성과 편리한 기동성을 선사합니다.\n대형 쇼핑몰인 광평동 홈플러스가 인근에 포진해 있어 주말 장보기나 다양한 생필품 조달이 무척 수월한 우수한 생활권을 갖추고 있습니다.\n실내에 들어서서 360도 VR 투어로 내부 공간을 구석구석 살펴보시면 반듯하고 가구 배치가 수월한 안정적인 방 구조가 눈에 들어옵니다.\n360도 VR 공간 체험을 통해 주방 분리형 슬라이딩 중문과 침실의 실제 깊이감 및 가구 간격의 공간감을 현장감 있게 직접 확인하실 수 있습니다.\n싱크대 수도 꼭지를 끝까지 틀어 수압 세기와 통수 상태를 점검해보았는데 세찬 물줄기가 뿜어져 나오며 하수구 역류나 물 고임 없이 시원하게 잘 빠집니다.\n욕실 및 베란다 내부까지 360도 VR 투어로 구석구석 둘러보실 수 있어 직접 현장을 방문한 것과 다름없는 정밀하고 투명한 정보를 선사합니다.\n보증금 ${selectedProperty.deposit}만 원에 월세 ${selectedProperty.rent}만 원이라는 파격적인 최저가 가성비 조건에 총 ${totalParking}의 넓은 자주식 주차장까지 완비되어 매달 주거비 부담을 덜어주는 실속 매물입니다.`;
 
             return (
               <div className="p-6 md:p-8 bg-gray-50/50">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 flex items-center gap-2">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 flex items-center flex-wrap gap-2">
                   <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-                  6. 중개대상물표시사항
+                  <span>6. 중개대상물표시사항</span>
+                  <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
                 </h3>
                 <p className="text-gray-600 mb-4 sm:mb-6 font-medium text-xs sm:text-sm lg:text-base">{addrDetail} {features}</p>
                 

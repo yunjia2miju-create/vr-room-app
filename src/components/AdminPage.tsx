@@ -123,7 +123,7 @@ export default function AdminPage({
   const [formContract, setFormContract] = useState('월세');
   const [formDeposit, setFormDeposit] = useState('');
   const [formRent, setFormRent] = useState('');
-  const [formPhone, setFormPhone] = useState('010-7590-0111');
+  const [formPhone, setFormPhone] = useState('사무실 054-455-6789, 휴대폰 010-7590-0111');
   const [formNote, setFormNote] = useState('');
   const [formVr, setFormVr] = useState(true);
   const [formVrUrl, setFormVrUrl] = useState('');
@@ -864,7 +864,7 @@ export default function AdminPage({
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
-                  <th className="py-4 px-6">주택관리</th>
+                  <th className="py-4 px-6">관리부동산</th>
                   <th className="py-4 px-6">건물명 / 호실</th>
                   <th className="py-4 px-6">주소</th>
                   <th className="py-4 px-6">구분</th>
@@ -1088,7 +1088,7 @@ export default function AdminPage({
                 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-1">주택관리 업체</label>
+                    <label className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-1">관리부동산 업체</label>
                     <input 
                       type="text"
                       value={formMgt}
