@@ -799,24 +799,26 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 검색결과 <strong className="text-orange-600 font-bold">{filteredUserProperties.length}개</strong>의 매물이 있습니다.
                 {activeStatusFilter !== '전체' && <span className="ml-2 text-xs bg-orange-100 text-[#ff6600] px-2 py-0.5 rounded font-bold">{activeStatusFilter}</span>}
               </div>
-              <button 
-                onClick={() => {
-                  const dataStr = "data:text/csv;charset=utf-8,\uFEFF" 
-                    + "건물명,주소,구분,보증금,월세,비고\n"
-                    + filteredUserProperties.map(p => `"${p.name}","${p.addr}","${p.type}","${p.deposit || ''}","${p.rent || ''}","${p.note || ''}"`).join("\n");
-                  const encodedUri = encodeURI(dataStr);
-                  const link = document.createElement("a");
-                  link.setAttribute("href", encodedUri);
-                  link.setAttribute("download", "taewang_properties.csv");
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-                className="flex items-center gap-1.5 text-[13px] text-emerald-700 hover:text-emerald-900 transition-colors font-semibold"
-              >
-                <span className="bg-[#217346] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">XLS</span>
-                엑셀 다운로드
-              </button>
+              {isLoggedIn && (
+                <button 
+                  onClick={() => {
+                    const dataStr = "data:text/csv;charset=utf-8,\uFEFF" 
+                      + "건물명,주소,구분,보증금,월세,비고\n"
+                      + filteredUserProperties.map(p => `"${p.name}","${p.addr}","${p.type}","${p.deposit || ''}","${p.rent || ''}","${p.note || ''}"`).join("\n");
+                    const encodedUri = encodeURI(dataStr);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "taewang_properties.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="flex items-center gap-1.5 text-[13px] text-emerald-700 hover:text-emerald-900 transition-colors font-semibold"
+                >
+                  <span className="bg-[#217346] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">XLS</span>
+                  엑셀 다운로드
+                </button>
+              )}
             </div>
 
             {/* Desktop Table View (lg:block) */}
@@ -1083,7 +1085,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
         <div className="w-full px-8 py-10 flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center max-w-7xl mx-auto">
           {/* Logo area */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Building2 size={36} className="text-[#ff6600]" />
+            <Vr360LogoIcon className="w-9 h-9 text-[#ff6600] shrink-0" />
             <h2 className="text-2xl font-black text-gray-900 tracking-tight">태왕공인중개사사무소</h2>
           </div>
           
@@ -1100,7 +1102,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
               <span>위치 : 구미시 송정대로 6길18 (송정동 472-10번지)</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-bold text-gray-700">
-              <span>문의처 : 054-455-6789, 010-7590-0111</span>
+              <span>문의처 : <a href="tel:054-455-6789" className="hover:text-[#ff6600] underline">054-455-6789</a>, <a href="tel:010-7590-0111" className="hover:text-[#ff6600] underline">010-7590-0111</a></span>
             </div>
             <div className="mt-2 text-gray-400 font-medium text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 border-t border-gray-100 pt-4">
               <span>Copyright © 태왕공인중개사사무소. 좋습니다.</span>
@@ -1135,6 +1137,59 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const [mapUrl, setMapUrl] = useState<string>('');
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
+  const [copiedPos, setCopiedPos] = useState<string | null>(null);
+
+  const handleCopyLink = (pos: string) => {
+    const currentUrl = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(currentUrl).then(() => {
+        setCopiedPos(pos);
+        setTimeout(() => setCopiedPos(null), 2000);
+      }).catch(() => {
+        fallbackCopy(currentUrl, pos);
+      });
+    } else {
+      fallbackCopy(currentUrl, pos);
+    }
+  };
+
+  const fallbackCopy = (url: string, pos: string) => {
+    const dummy = document.createElement('textarea');
+    document.body.appendChild(dummy);
+    dummy.value = url;
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+    setCopiedPos(pos);
+    setTimeout(() => setCopiedPos(null), 2000);
+  };
+
+  const renderCopyButton = (pos: string, extraClasses: string = "") => {
+    const isCopied = copiedPos === pos;
+    return (
+      <button
+        onClick={() => handleCopyLink(pos)}
+        className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow-sm ${
+          isCopied 
+            ? 'bg-emerald-600 text-white' 
+            : 'bg-white border border-[#ff6600] text-[#ff6600] hover:bg-orange-50'
+        } ${extraClasses}`}
+        title="상세페이지 링크 주소 복사하기"
+      >
+        {isCopied ? (
+          <>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>링크 복사완료! ✓</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>상세페이지 링크 복사</span>
+          </>
+        )}
+      </button>
+    );
+  };
 
   const listingNo = selectedProperty?.listingNumber || (selectedProperty?.id?.toString().startsWith('TW-') ? selectedProperty.id : `TW-${selectedProperty?.id}`);
 
@@ -1202,10 +1257,13 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
       {/* Main Content Area: Expanded to full window width (max-w-[1536px]) */}
       <div className="w-full max-w-[1536px] mx-auto px-4 md:px-6 py-6 md:py-8 flex-1">
-        <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors font-medium">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          목록으로 돌아가기
-        </button>
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            목록으로 돌아가기
+          </button>
+          {renderCopyButton('1')}
+        </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* 1. 건물명 & 기본 위치 */}
@@ -1218,7 +1276,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               </h2>
               <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-lg">{formatAddress(selectedProperty.addr, isLoggedIn)}</p>
             </div>
-            <div className="text-left sm:text-right mt-2 sm:mt-0">
+            <div className="text-left sm:text-right mt-2 sm:mt-0 flex flex-col sm:items-end gap-2">
               <span className="bg-orange-50 text-[#ff6600] border border-orange-200 px-4 py-2 rounded-full text-xs sm:text-sm font-bold">
                 {selectedProperty.type}
               </span>
@@ -1227,11 +1285,14 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
           {/* 2. 지도 */}
           <div className="p-6 md:p-8 border-b border-gray-100">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center flex-wrap gap-2">
-              <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-              <span>2. 위치 및 지도</span>
-              <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
-            </h3>
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center flex-wrap gap-2">
+                <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
+                <span>2. 위치 및 지도</span>
+                <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
+              </h3>
+              {renderCopyButton('2')}
+            </div>
             <div className="w-full aspect-[16/9] md:aspect-[2/1] min-h-[260px] bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 shadow-sm">
               {loadingMap ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-[#f8f9fa] z-10">
@@ -1367,6 +1428,9 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                 <p className="text-gray-500 text-sm">해당 매물은 촬영 준비 중이거나 현장 확인이 완료된 매물입니다. 중개사무소로 문의주시면 실시간 상담을 지원해 드립니다.</p>
               </div>
             )}
+            <div className="mt-4 flex justify-end">
+              {renderCopyButton('4')}
+            </div>
           </div>
 
           {/* 5. 태왕 알림 & 안심 공지사항 */}
@@ -1497,6 +1561,14 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
             );
           })()}
         </div>
+
+        <div className="mt-6 flex items-center justify-between flex-wrap gap-3">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors font-medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            목록으로 돌아가기
+          </button>
+          {renderCopyButton('3')}
+        </div>
       </div>
 
       {/* Footer */}
@@ -1507,7 +1579,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
         <div className="w-full px-8 py-10 flex flex-col md:flex-row gap-8 md:gap-12 items-start md:items-center max-w-7xl mx-auto">
           {/* Logo area */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Building2 size={36} className="text-[#ff6600]" />
+            <Vr360LogoIcon className="w-9 h-9 text-[#ff6600] shrink-0" />
             <h2 className="text-2xl font-black text-gray-900 tracking-tight">태왕공인중개사사무소</h2>
           </div>
           
@@ -1524,7 +1596,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <span>위치 : 구미시 송정대로 6길18 (송정동 472-10번지)</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-bold text-gray-700">
-              <span>문의처 : 054-455-6789, 010-7590-0111</span>
+              <span>문의처 : <a href="tel:054-455-6789" className="hover:text-[#ff6600] underline">054-455-6789</a>, <a href="tel:010-7590-0111" className="hover:text-[#ff6600] underline">010-7590-0111</a></span>
             </div>
             <div className="mt-2 text-gray-400 font-medium text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2 border-t border-gray-100 pt-4">
               <span>Copyright © 태왕공인중개사사무소. 좋습니다.</span>
