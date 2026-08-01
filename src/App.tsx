@@ -102,6 +102,11 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
   const isLoggedIn = useIsLoggedIn();
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
 
+  const todayFormatted = React.useMemo(() => {
+    const today = new Date();
+    return `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+  }, []);
+
   // Search & Filter States
   const [searchType, setSearchType] = useState('전체');
   const [searchDong, setSearchDong] = useState('전체');
@@ -413,6 +418,16 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 </div>
               </div>
             ))}
+
+            {/* 오늘 날짜 카드 */}
+            <div className="rounded flex flex-col p-3 border border-gray-200 bg-white select-none shadow-sm">
+              <div className="flex items-center gap-1">
+                <span className="text-[13px] font-medium text-gray-600">오늘 날짜</span>
+              </div>
+              <div className="text-base sm:text-lg md:text-xl font-bold mt-1 text-gray-800 flex items-center h-full">
+                {todayFormatted}
+              </div>
+            </div>
           </div>
 
           {/* Search Section */}
@@ -1192,6 +1207,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   };
 
   const listingNo = selectedProperty?.listingNumber || (selectedProperty?.id?.toString().startsWith('TW-') ? selectedProperty.id : `TW-${selectedProperty?.id}`);
+  const dongName = selectedProperty?.dong || (selectedProperty?.addr ? selectedProperty.addr.split(' ')[0] : '');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -1269,6 +1285,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
           {/* 1. 건물명 & 기본 위치 */}
           <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start gap-4 bg-white">
             <div>
+              <div className="text-xs sm:text-sm font-semibold text-gray-500 mb-1">건물명 :</div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center flex-wrap gap-2 sm:gap-3">
                 <span>{selectedProperty.name}</span>
                 {isLoggedIn && <span className="text-[#ff6600] text-xl md:text-2xl">{selectedProperty.room}호</span>}
@@ -1307,6 +1324,50 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                     className="absolute inset-0 w-full h-full z-0 bg-white border-none" 
                     allowFullScreen
                   ></iframe>
+
+                  {/* 2.5x Enlarged Red Location Marker Pin Overlay with Exact Point Alignment */}
+                  <div className="absolute top-1/2 left-1/2 pointer-events-none z-10">
+                    <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-full flex flex-col items-center">
+                      {/* Info Bubble right above the pin */}
+                      <div className="mb-2 bg-white/95 backdrop-blur-md border-2 border-[#ff6600] shadow-xl px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 whitespace-nowrap text-gray-900">
+                        <span className="text-[#ff6600]">건물명:</span>
+                        <span className="text-gray-900 font-extrabold">{selectedProperty.name}</span>
+                        <span className="text-[#ff6600] font-bold">(매물번호 {listingNo})</span>
+                        {dongName && (
+                          <span className="text-gray-700 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded text-xs font-bold">{dongName}</span>
+                        )}
+                      </div>
+
+                      {/* Enlarged Red Marker SVG */}
+                      <div className="relative">
+                        <svg 
+                          className="w-14 h-18 sm:w-16 sm:h-20 drop-shadow-[0_8px_12px_rgba(0,0,0,0.45)] filter" 
+                          viewBox="0 0 24 32" 
+                          fill="none" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          {/* Red Marker Body */}
+                          <path 
+                            d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37258 18.6274 0 12 0Z" 
+                            fill="#EA4335"
+                          />
+                          {/* Dark Red Accent Contour */}
+                          <path 
+                            d="M12 0.5C5.64873 0.5 0.5 5.64873 0.5 12C0.5 16.2 3.8 21.8 7.8 26.5C9.8 28.8 11.3 30.5 12 31.3C12.7 30.5 14.2 28.8 16.2 26.5C20.2 21.8 23.5 16.2 23.5 12C23.5 5.64873 18.3513 0.5 12 0.5Z" 
+                            stroke="#B31412" 
+                            strokeWidth="1"
+                          />
+                          {/* Center White Circle */}
+                          <circle cx="12" cy="11" r="4.5" fill="white" />
+                          {/* Inner Red Dot */}
+                          <circle cx="12" cy="11" r="2.2" fill="#EA4335" />
+                        </svg>
+                      </div>
+                      {/* Marker Shadow */}
+                      <div className="w-8 h-2 bg-black/40 rounded-full blur-[2px] -mt-1"></div>
+                    </div>
+                  </div>
+
                   {/* Dark gradient at the bottom to make the button text stand out perfectly */}
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent z-10 pointer-events-none"></div>
                 </>
