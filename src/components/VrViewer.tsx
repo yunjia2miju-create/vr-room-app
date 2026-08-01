@@ -103,37 +103,21 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
           setHasInteracted(true);
         });
 
-        let animatedInitialZoom = false;
-        const triggerZoomIn = () => {
+        const setInitialZoomOut = () => {
           setIsLoaded(true);
-          if (animatedInitialZoom || !viewerInstance) return;
-          animatedInitialZoom = true;
-
-          // Start at zoom 0 (-)
-          try { viewerInstance.zoom(0); } catch (e) {}
-
-          // Smoothly zoom in after a brief pause
-          setTimeout(() => {
-            if (viewerInstance) {
-              try {
-                viewerInstance.animate({
-                  zoom: 35,
-                  speed: '1200ms',
-                });
-              } catch (e) {
-                try { viewerInstance.zoom(35); } catch (err) {}
-              }
-            }
-          }, 600);
+          if (!viewerInstance) return;
+          try {
+            viewerInstance.zoom(0);
+          } catch (e) {}
         };
 
         viewerInstance.addEventListener('ready', () => {
           console.log('PSV: ready fired');
-          triggerZoomIn();
+          setInitialZoomOut();
         });
         viewerInstance.addEventListener('panorama-loaded', () => {
           console.log('PSV: panorama-loaded fired');
-          triggerZoomIn();
+          setInitialZoomOut();
         });
         viewerInstance.addEventListener('render', () => {
           setIsLoaded(true);
@@ -174,15 +158,11 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     setCurrentIndex(nextIndex);
     setError(null);
     viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: true, zoom: 0 }).then(() => {
-      setTimeout(() => {
-        if (viewerRef.current) {
-          try {
-            viewerRef.current.animate({ zoom: 35, speed: '1000ms' });
-          } catch (err) {
-            try { viewerRef.current.zoom(35); } catch (e) {}
-          }
-        }
-      }, 500);
+      if (viewerRef.current) {
+        try {
+          viewerRef.current.zoom(0);
+        } catch (e) {}
+      }
     }).catch((err: any) => {
       console.error('goToNext error:', err);
     });
@@ -198,15 +178,11 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     setCurrentIndex(prevIndex);
     setError(null);
     viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: true, zoom: 0 }).then(() => {
-      setTimeout(() => {
-        if (viewerRef.current) {
-          try {
-            viewerRef.current.animate({ zoom: 35, speed: '1000ms' });
-          } catch (err) {
-            try { viewerRef.current.zoom(35); } catch (e) {}
-          }
-        }
-      }, 500);
+      if (viewerRef.current) {
+        try {
+          viewerRef.current.zoom(0);
+        } catch (e) {}
+      }
     }).catch((err: any) => {
       console.error('goToPrev error:', err);
     });
