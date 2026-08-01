@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import AdminPage from './components/AdminPage';
 import VrViewer from './components/VrViewer';
-import NaverMap from './components/NaverMap';
 import { auth } from './firebase';
 
 export const PROPERTIES = [
@@ -38,25 +37,18 @@ function getTodayDateString() {
 }
 
 const Vr360LogoIcon = ({ className = "w-8 h-8 md:w-9 md:h-9" }: { className?: string }) => (
-  <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="100" rx="22" fill="#0f223d" />
-    <rect x="61" y="26" width="6" height="13" rx="1" fill="#c8d6e5" />
-    <path
-      d="M50 20 L20 46 H25 V79 C25 80.6 26.3 82 27.9 82 H72.1 C73.7 82 75 80.6 75 79 V46 H80 L50 20 Z"
-      fill="#c8d6e5"
-    />
-    <text
-      x="50"
-      y="65"
-      fill="#0f223d"
-      fontSize="24"
-      fontWeight="900"
-      fontFamily="system-ui, -apple-system, sans-serif"
-      textAnchor="middle"
-      letterSpacing="-0.5"
-    >
-      360
-    </text>
+  <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
+    <mask id="building-mask-global">
+      <rect width="100" height="100" fill="white" />
+      <circle cx="32.5" cy="56" r="7" fill="black" />
+      <rect x="56.5" y="32" width="24" height="9" rx="4.5" fill="black" />
+      <rect x="56.5" y="48" width="24" height="9" rx="4.5" fill="black" />
+      <path d="M 60 90 L 60 74 A 8.5 8.5 0 0 1 77 74 L 77 90 Z" fill="black" />
+    </mask>
+    <g mask="url(#building-mask-global)" fill="currentColor">
+      <path d="M 12 90 L 12 50 A 12 12 0 0 1 24 38 L 41 38 A 12 12 0 0 1 53 50 L 53 90 Z" />
+      <path d="M 47 90 L 47 27 A 12 12 0 0 1 59 15 L 78 15 A 12 12 0 0 1 90 27 L 90 90 Z" />
+    </g>
   </svg>
 );
 
@@ -1240,12 +1232,51 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <span>2. 위치 및 지도</span>
               <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
-            <NaverMap 
-              addr={selectedProperty.addr} 
-              name={selectedProperty.name} 
-              listingNo={listingNo}
-              room={isLoggedIn ? selectedProperty.room : undefined}
-            />
+            <div className="w-full aspect-[16/9] md:aspect-[2/1] min-h-[260px] bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 shadow-sm">
+              {loadingMap ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-[#f8f9fa] z-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6600] mb-3"></div>
+                  <span className="font-medium text-xs sm:text-sm text-gray-500">지도를 불러오는 중입니다...</span>
+                </div>
+              ) : mapUrl ? (
+                <>
+                  <iframe 
+                    title="Property Location Map"
+                    src={mapUrl} 
+                    className="absolute inset-0 w-full h-full z-0 bg-white border-none" 
+                    allowFullScreen
+                  ></iframe>
+                  {/* Dark gradient at the bottom to make the button text stand out perfectly */}
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent z-10 pointer-events-none"></div>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gray-50 p-6 text-center z-10">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3 text-gray-400">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <span className="font-bold text-gray-800 text-sm mb-1">{formatAddress(selectedProperty.addr, isLoggedIn)}</span>
+                  <span className="text-xs text-gray-500 max-w-[280px]">
+                    지도를 직접 불러올 수 없습니다.<br/>아래 네이버 지도 버튼을 눌러 위치를 확인해주세요.
+                  </span>
+                </div>
+              )}
+              
+              {/* Naver Map Button Overlay */}
+              <div className="absolute bottom-4 left-4 right-4 z-20 sm:max-w-xs sm:left-auto">
+                <a 
+                  href={`https://map.naver.com/v5/search/${encodeURIComponent('구미시 ' + selectedProperty.addr)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 bg-[#03C75A] text-white py-3 px-4 rounded-lg font-bold text-sm shadow-md hover:bg-[#02b350] hover:shadow-lg transition-all text-center"
+                >
+                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  네이버 지도로 열기 & 길찾기
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* 3. 매물 상세정보 */}
@@ -1581,7 +1612,10 @@ const DEFAULT_POSTS = [
 export default function App() {
   const [properties, setProperties] = useState<any[]>([]);
   const [boardPosts, setBoardPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [propertiesLoaded, setPropertiesLoaded] = useState(false);
+  const [postsLoaded, setPostsLoaded] = useState(false);
+  
+  const loading = !propertiesLoaded || !postsLoaded;
 
   useEffect(() => {
     import('./firebase').then(({ db }) => {
@@ -1589,20 +1623,22 @@ export default function App() {
         const unsubProperties = onSnapshot(collection(db, 'properties'), (snapshot) => {
           const data = snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
           setProperties(data.length > 0 ? data : PROPERTIES);
+          setPropertiesLoaded(true);
         }, (error) => {
           console.error('Error fetching properties:', error);
           setProperties(PROPERTIES);
+          setPropertiesLoaded(true);
         });
 
         const unsubPosts = onSnapshot(collection(db, 'boardPosts'), (snapshot) => {
           const data = snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
           setBoardPosts(data.length > 0 ? data : DEFAULT_POSTS);
+          setPostsLoaded(true);
         }, (error) => {
           console.error('Error fetching posts:', error);
           setBoardPosts(DEFAULT_POSTS);
+          setPostsLoaded(true);
         });
-
-        setLoading(false);
       });
     });
   }, []);
