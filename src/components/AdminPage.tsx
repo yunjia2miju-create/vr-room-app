@@ -33,7 +33,8 @@ import {
   Loader2,
   Star,
   GripVertical,
-  Move
+  Move,
+  HardDrive
 } from 'lucide-react';
 
 interface Property {
@@ -214,6 +215,68 @@ export default function AdminPage({
     setDragOverBlogIndex(null);
   };
 
+  // Image File Sizes tracking state
+  const [imageSizes, setImageSizes] = useState<Record<string, number>>({});
+
+  // Helper function to format bytes into readable sizes (KB, MB, etc.)
+  const formatBytes = (bytes: number) => {
+    if (!bytes || bytes <= 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Automatically fetch/calculate sizes for VR and Blog images
+  React.useEffect(() => {
+    const vrUrls = formVrUrl.split('\n').map(u => u.trim()).filter(Boolean);
+    const allUrls = Array.from(new Set([...vrUrls, ...detailBlogImages]));
+
+    const missing = allUrls.filter(url => imageSizes[url] === undefined);
+    if (missing.length === 0) return;
+
+    let isMounted = true;
+
+    missing.forEach(async (url) => {
+      try {
+        if (url.startsWith('data:')) {
+          const base64Str = url.split(',')[1] || '';
+          const sizeInBytes = Math.floor((base64Str.length * 3) / 4);
+          if (isMounted) setImageSizes(prev => ({ ...prev, [url]: sizeInBytes }));
+          return;
+        }
+
+        const res = await fetch(url, { method: 'HEAD' });
+        if (res.ok) {
+          const contentLength = res.headers.get('content-length');
+          if (contentLength) {
+            const bytes = parseInt(contentLength, 10);
+            if (!isNaN(bytes) && bytes > 0 && isMounted) {
+              setImageSizes(prev => ({ ...prev, [url]: bytes }));
+              return;
+            }
+          }
+        }
+
+        const getRes = await fetch(url);
+        if (getRes.ok) {
+          const blob = await getRes.blob();
+          if (isMounted) {
+            setImageSizes(prev => ({ ...prev, [url]: blob.size }));
+          }
+        }
+      } catch (e) {
+        if (isMounted) {
+          setImageSizes(prev => ({ ...prev, [url]: 0 }));
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [formVrUrl, detailBlogImages]);
+
   // Active Tab: properties vs board
   const [activeTab, setActiveTab] = useState<'properties' | 'board'>('properties');
 
@@ -236,7 +299,7 @@ export default function AdminPage({
     setIsUploadingVr(true);
     setUploadProgress(0);
 
-    const uploadPromises = Array.from(files).map((file: any, index) => {
+    const uploadPromises = Array.from(files).map((file: any) => {
       return new Promise<string>((resolve, reject) => {
         const storageRef = ref(storage, `vr_tours/${Date.now()}_${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
@@ -245,7 +308,6 @@ export default function AdminPage({
           'state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            // Roughly track progress across multiple files by dividing total progress
             setUploadProgress((prev) => Math.min(prev + (progress / files.length), 100));
           },
           (error) => {
@@ -254,6 +316,7 @@ export default function AdminPage({
           },
           async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setImageSizes((prev) => ({ ...prev, [downloadURL]: file.size }));
             resolve(downloadURL);
           }
         );
@@ -299,6 +362,7 @@ export default function AdminPage({
           },
           async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setImageSizes((prev) => ({ ...prev, [downloadURL]: file.size }));
             resolve(downloadURL);
           }
         );
@@ -1402,8 +1466,8 @@ export default function AdminPage({
                                   (가로 5장 배치 · 🖱️ 마우스 드래그&드롭 또는 화살표 버튼으로 순서 이동)
                                 </span>
                               </h5>
-                              <span className="text-xs text-gray-500 font-medium">
-                                총 {formVrUrl.split('\n').filter(u => u.trim() !== '').length}장
+                              <span className="text-xs font-extrabold bg-orange-100 text-[#ff6600] px-2.5 py-1 rounded-lg">
+                                총 {formVrUrl.split('\n').filter(u => u.trim() !== '').length}장 ({formatBytes(formVrUrl.split('\n').map(u => u.trim()).filter(Boolean).reduce((acc, u) => acc + (imageSizes[u] || 0), 0))})
                               </span>
                             </div>
 
@@ -1462,11 +1526,11 @@ export default function AdminPage({
                                     {idx === 0 ? (
                                       <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm flex items-center gap-1 pointer-events-none">
                                         <Star size={12} fill="currentColor" />
-                                        대표 360사진
+                                        대표 360사진 {imageSizes[url.trim()] ? `(${formatBytes(imageSizes[url.trim()])})` : ''}
                                       </div>
                                     ) : (
                                       <div className="absolute top-1.5 left-1.5 bg-emerald-600/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none">
-                                        VR {idx + 1}
+                                        VR {idx + 1} {imageSizes[url.trim()] ? `(${formatBytes(imageSizes[url.trim()])})` : ''}
                                       </div>
                                     )}
 
@@ -1951,7 +2015,7 @@ export default function AdminPage({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm sm:text-base font-extrabold text-gray-800 flex items-center gap-1.5">
                           <UploadCloud size={18} className="text-[#ff6600]" />
-                          블로그 사진/이미지 첨부 ({detailBlogImages.length}장)
+                          블로그 사진/이미지 첨부 ({detailBlogImages.length}장 · {formatBytes(detailBlogImages.reduce((acc, u) => acc + (imageSizes[u] || 0), 0))})
                         </span>
                         <span className="text-xs font-semibold text-[#ff6600]">
                           (가로 5장 배치 · 🖱️ 드래그&드롭 및 순서 이동 가능)
@@ -2042,11 +2106,11 @@ export default function AdminPage({
                               {imgIdx === 0 ? (
                                 <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm flex items-center gap-1 pointer-events-none">
                                   <Star size={12} fill="currentColor" />
-                                  대표 사진
+                                  대표 사진 {imageSizes[imgUrl] ? `(${formatBytes(imageSizes[imgUrl])})` : ''}
                                 </div>
                               ) : (
                                 <div className="absolute top-1.5 left-1.5 bg-gray-800/80 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none">
-                                  사진 {imgIdx + 1}
+                                  사진 {imgIdx + 1} {imageSizes[imgUrl] ? `(${formatBytes(imageSizes[imgUrl])})` : ''}
                                 </div>
                               )}
 
@@ -2183,6 +2247,76 @@ export default function AdminPage({
                       </div>
                     )}
                   </div>
+
+                  {/* Overall Image Capacity Dashboard Card */}
+                  {(() => {
+                    const vrUrlsList = formVrUrl.split('\n').map(u => u.trim()).filter(Boolean);
+                    const totalVrBytes = vrUrlsList.reduce((acc, url) => acc + (imageSizes[url] || 0), 0);
+                    const totalBlogBytes = detailBlogImages.reduce((acc, url) => acc + (imageSizes[url] || 0), 0);
+                    const grandTotalBytes = totalVrBytes + totalBlogBytes;
+
+                    return (
+                      <div className="mt-4 p-4 sm:p-5 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 rounded-2xl border-2 border-orange-200/80 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-orange-200/80 pb-3">
+                          <div className="flex items-center gap-2">
+                            <HardDrive size={22} className="text-[#ff6600]" />
+                            <div>
+                              <h6 className="font-extrabold text-gray-800 text-sm sm:text-base">
+                                매물 사진 및 VR 데이터 용량 리포트
+                              </h6>
+                              <p className="text-xs text-gray-500 font-semibold">
+                                360 파노라마 리스트 및 블로그 사진 전체 용량을 정밀 분석하여 실시간으로 표기합니다.
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-xs bg-[#ff6600] text-white font-extrabold px-3 py-1 rounded-full shadow-xs">
+                            총 {vrUrlsList.length + detailBlogImages.length}장 등록됨
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                          {/* 360 Panorama Total Size */}
+                          <div className="bg-white p-4 rounded-xl border border-orange-200 shadow-2xs flex flex-col justify-between">
+                            <div className="text-xs font-extrabold text-gray-600 mb-2 flex items-center justify-between">
+                              <span>360 파노라마 이미지 총 용량</span>
+                              <span className="text-[11px] bg-orange-100 text-[#ff6600] font-bold px-2 py-0.5 rounded-md">
+                                {vrUrlsList.length}장
+                              </span>
+                            </div>
+                            <div className="text-xl sm:text-2xl font-black text-gray-900 font-mono tracking-tight flex items-baseline gap-1">
+                              {formatBytes(totalVrBytes)}
+                            </div>
+                          </div>
+
+                          {/* Blog Photo Total Size */}
+                          <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-2xs flex flex-col justify-between">
+                            <div className="text-xs font-extrabold text-gray-600 mb-2 flex items-center justify-between">
+                              <span>블로그 사진 총 용량</span>
+                              <span className="text-[11px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-md">
+                                {detailBlogImages.length}장
+                              </span>
+                            </div>
+                            <div className="text-xl sm:text-2xl font-black text-gray-900 font-mono tracking-tight flex items-baseline gap-1">
+                              {formatBytes(totalBlogBytes)}
+                            </div>
+                          </div>
+
+                          {/* Combined Grand Total Size */}
+                          <div className="bg-gradient-to-br from-[#ff6600] to-[#e65c00] text-white p-4 rounded-xl shadow-md flex flex-col justify-between">
+                            <div className="text-xs font-bold text-orange-100 mb-2 flex items-center justify-between">
+                              <span>전체 매물 사진 통합 총 용량</span>
+                              <span className="text-[11px] bg-white/20 text-white font-bold px-2 py-0.5 rounded-md">
+                                합계 {vrUrlsList.length + detailBlogImages.length}장
+                              </span>
+                            </div>
+                            <div className="text-xl sm:text-2xl font-black text-white font-mono tracking-tight flex items-baseline gap-1">
+                              {formatBytes(grandTotalBytes)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
