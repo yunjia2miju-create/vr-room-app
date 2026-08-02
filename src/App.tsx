@@ -1618,6 +1618,40 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                     })()}
                   </div>
                 </div>
+
+                {/* 21. 블로그 */}
+                {(d.blog || (Array.isArray(d.blog_images) && d.blog_images.length > 0)) && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="text-[#ff6600] font-bold mb-4 text-sm sm:text-base md:text-lg flex items-center gap-2">
+                      <span className="w-1.5 h-5 sm:h-6 bg-[#ff6600] rounded-full"></span>
+                      21. 블로그 (매물 포스팅)
+                    </div>
+                    {d.blog && (
+                      <div className="bg-white p-4 sm:p-5 md:p-6 rounded-xl border border-gray-200 text-gray-800 text-xs sm:text-sm md:text-base leading-relaxed space-y-3 whitespace-pre-wrap mb-6 shadow-sm">
+                        {d.blog}
+                      </div>
+                    )}
+                    {Array.isArray(d.blog_images) && d.blog_images.length > 0 && (
+                      <div className="flex flex-col gap-6 w-full">
+                        {d.blog_images.map((imgUrl, imgIdx) => (
+                          <a 
+                            key={imgIdx} 
+                            href={imgUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="block w-full aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all group bg-gray-100"
+                          >
+                            <img 
+                              src={imgUrl} 
+                              alt={`블로그 이미지 ${imgIdx + 1}`} 
+                              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" 
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })()}

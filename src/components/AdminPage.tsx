@@ -19,12 +19,21 @@ import {
   Info,
   Layers,
   ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Settings,
   Tv,
   FileText,
   UploadCloud,
   Loader2,
-  Star
+  Star,
+  GripVertical,
+  Move
 } from 'lucide-react';
 
 interface Property {
@@ -61,6 +70,8 @@ interface Property {
     building_use?: string;
     total_parking?: string;
     description?: string;
+    blog?: string;
+    blog_images?: string[];
   };
 }
 
@@ -102,8 +113,6 @@ export default function AdminPage({
     return sessionStorage.getItem('taewang_admin_logged') === 'true';
   });
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
   // Search & Filters inside Admin
@@ -151,6 +160,59 @@ export default function AdminPage({
   const [detailBuildingUse, setDetailBuildingUse] = useState('단독주택');
   const [detailTotalParking, setDetailTotalParking] = useState('12대');
   const [detailDescription, setDetailDescription] = useState('');
+  const [detailBlog, setDetailBlog] = useState('');
+  const [detailBlogImages, setDetailBlogImages] = useState<string[]>([]);
+  const [isUploadingBlogImg, setIsUploadingBlogImg] = useState(false);
+  const [blogUploadProgress, setBlogUploadProgress] = useState(0);
+  const blogFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Drag and drop state for 360 VR photos reordering
+  const [draggedVrIndex, setDraggedVrIndex] = useState<number | null>(null);
+  const [dragOverVrIndex, setDragOverVrIndex] = useState<number | null>(null);
+
+  const handleVrDrop = (targetIdx: number) => {
+    if (draggedVrIndex === null || draggedVrIndex === targetIdx) {
+      setDraggedVrIndex(null);
+      setDragOverVrIndex(null);
+      return;
+    }
+    const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+    if (draggedVrIndex < 0 || draggedVrIndex >= urls.length || targetIdx < 0 || targetIdx >= urls.length) {
+      setDraggedVrIndex(null);
+      setDragOverVrIndex(null);
+      return;
+    }
+    const [movedItem] = urls.splice(draggedVrIndex, 1);
+    urls.splice(targetIdx, 0, movedItem);
+    setFormVrUrl(urls.join('\n'));
+    setDraggedVrIndex(null);
+    setDragOverVrIndex(null);
+  };
+
+  // Drag and drop state for blog general photos reordering
+  const [draggedBlogIndex, setDraggedBlogIndex] = useState<number | null>(null);
+  const [dragOverBlogIndex, setDragOverBlogIndex] = useState<number | null>(null);
+
+  const handleBlogDrop = (targetIdx: number) => {
+    if (draggedBlogIndex === null || draggedBlogIndex === targetIdx) {
+      setDraggedBlogIndex(null);
+      setDragOverBlogIndex(null);
+      return;
+    }
+    if (draggedBlogIndex < 0 || draggedBlogIndex >= detailBlogImages.length || targetIdx < 0 || targetIdx >= detailBlogImages.length) {
+      setDraggedBlogIndex(null);
+      setDragOverBlogIndex(null);
+      return;
+    }
+    setDetailBlogImages(prev => {
+      const next = [...prev];
+      const [movedItem] = next.splice(draggedBlogIndex, 1);
+      next.splice(targetIdx, 0, movedItem);
+      return next;
+    });
+    setDraggedBlogIndex(null);
+    setDragOverBlogIndex(null);
+  };
 
   // Active Tab: properties vs board
   const [activeTab, setActiveTab] = useState<'properties' | 'board'>('properties');
@@ -213,6 +275,50 @@ export default function AdminPage({
       });
   };
 
+  const handleBlogFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingBlogImg(true);
+    setBlogUploadProgress(0);
+
+    const uploadPromises = Array.from(files).map((file: any) => {
+      return new Promise<string>((resolve, reject) => {
+        const storageRef = ref(storage, `blog_photos/${Date.now()}_${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setBlogUploadProgress((prev) => Math.min(prev + (progress / files.length), 100));
+          },
+          (error) => {
+            console.error('Blog photo upload failed:', error);
+            reject(error);
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(downloadURL);
+          }
+        );
+      });
+    });
+
+    Promise.all(uploadPromises)
+      .then((urls) => {
+        setDetailBlogImages((prev) => [...prev, ...urls]);
+        setIsUploadingBlogImg(false);
+        setBlogUploadProgress(0);
+        if (blogFileInputRef.current) blogFileInputRef.current.value = '';
+      })
+      .catch((err) => {
+        alert('블로그 사진 업로드 중 오류가 발생했습니다.');
+        setIsUploadingBlogImg(false);
+        setBlogUploadProgress(0);
+      });
+  };
+
   // Helper functions to parse board content into property details
   const cleanValue = (val: string, index: number): string => {
     let cleaned = val.trim();
@@ -238,7 +344,8 @@ export default function AdminPage({
       17: ['건축물 용도', '건축물용도', '결합용도', '용도'],
       18: ['매물 번호', '매물번호', '매물 번호', 'ID'],
       19: ['총 주차 대수', '총주차대수', '총 주차대수', '총주차 대수', '주차대수'],
-      20: ['상세 설명 및 홍보 문구', '상세설명 및 홍보문구', '상세 설명', '상세설명']
+      20: ['상세 설명 및 홍보 문구', '상세설명 및 홍보문구', '상세 설명', '상세설명'],
+      21: ['블로그', '게시판', '블로그 포스팅', '블로그포스팅']
     };
 
     const list = labelsToStrip[index] || [];
@@ -275,16 +382,17 @@ export default function AdminPage({
       17: 'building_use',
       18: 'property_id',
       19: 'total_parking',
-      20: 'description'
+      20: 'description',
+      21: 'blog'
     };
 
-    for (let i = 1; i <= 20; i++) {
+    for (let i = 1; i <= 21; i++) {
       const nextNum = i + 1;
       let patternStr = '';
-      if (i < 20) {
+      if (i < 21) {
         patternStr = `(?:^|\\n)\\s*${i}\\.\\s*(?:[^:\\n]+:)?\\s*([\\s\\S]*?)(?=\\n\\s*${nextNum}\\.\\s*|$)`;
       } else {
-        patternStr = `(?:^|\\n)\\s*20\\.\\s*(?:[^:\\n]+:)?\\s*([\\s\\S]*)$`;
+        patternStr = `(?:^|\\n)\\s*21\\.\\s*(?:[^:\\n]+:)?\\s*([\\s\\S]*)$`;
       }
       
       const regex = new RegExp(patternStr, 'i');
@@ -401,17 +509,6 @@ export default function AdminPage({
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username === 'admin' && password === '1') {
-      sessionStorage.setItem('taewang_admin_logged', 'true');
-      setIsLoggedIn(true);
-      setLoginError('');
-    } else {
-      setLoginError('아이디 또는 비밀번호가 잘못되었습니다. (안내된 데모 계정을 확인해주세요)');
-    }
-  };
-
   // Handle Logout
   const handleLogout = async () => {
     sessionStorage.removeItem('taewang_admin_logged');
@@ -461,6 +558,8 @@ export default function AdminPage({
     setDetailBuildingUse('단독주택');
     setDetailTotalParking('12대');
     setDetailDescription('');
+    setDetailBlog('');
+    setDetailBlogImages([]);
 
     setIsFormOpen(true);
   };
@@ -502,6 +601,8 @@ export default function AdminPage({
     setDetailBuildingUse(details.building_use || '단독주택');
     setDetailTotalParking(details.total_parking || '12대');
     setDetailDescription(details.description || '');
+    setDetailBlog(details.blog || '');
+    setDetailBlogImages(Array.isArray(details.blog_images) ? details.blog_images : []);
 
     setIsFormOpen(true);
   };
@@ -535,7 +636,9 @@ export default function AdminPage({
       duplex: detailDuplex,
       building_use: detailBuildingUse,
       total_parking: detailTotalParking,
-      description: detailDescription || `구미시 ${formAddr}에 위치한 아름답고 수려한 ${formName} ${formRoom}호 공실입니다. 최상의 조건으로 모십니다.`
+      description: detailDescription || `구미시 ${formAddr}에 위치한 아름답고 수려한 ${formName} ${formRoom}호 공실입니다. 최상의 조건으로 모십니다.`,
+      blog: detailBlog,
+      blog_images: detailBlogImages
     };
 
     // Automatic parse: If the bulk paste text area contains text, automatically parse and merge it on save!
@@ -562,7 +665,9 @@ export default function AdminPage({
           duplex: parsed.duplex || detailsObj.duplex,
           building_use: parsed.building_use || detailsObj.building_use,
           total_parking: parsed.total_parking || detailsObj.total_parking,
-          description: parsed.description || detailsObj.description
+          description: parsed.description || detailsObj.description,
+          blog: parsed.blog || detailsObj.blog,
+          blog_images: detailsObj.blog_images
         };
       }
     }
@@ -649,84 +754,44 @@ export default function AdminPage({
           </div>
 
           <div className="p-6 sm:p-8">
-            <p className="text-gray-500 font-medium text-[13.5px] leading-relaxed mb-6">
-              매물 등록 및 개인 맞춤 상담을 이용하시려면 이메일 혹은 소셜 계정으로 로그인해주세요.
+            <p className="text-gray-600 font-medium text-[14px] leading-relaxed mb-6 text-center">
+              매물 등록 및 관리자 기능을 이용하시려면 구모 소셜 계정으로 로그인해주세요.
             </p>
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              {loginError && (
-                <div className="bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl border border-red-100">
-                  {loginError}
-                </div>
-              )}
-              
-              <div>
-                <input 
-                  type="text" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="이메일 주소 입력" 
-                  className="w-full bg-[#f8f9fa] border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:border-[#009e73] focus:ring-1 focus:ring-[#009e73] outline-none transition-all placeholder:text-gray-400 font-medium"
-                  required
-                />
+            {loginError && (
+              <div className="bg-red-50 text-red-600 text-xs font-semibold p-3 mb-4 rounded-xl border border-red-100">
+                {loginError}
               </div>
-
-              <div>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호 입력" 
-                  className="w-full bg-[#f8f9fa] border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:border-[#009e73] focus:ring-1 focus:ring-[#009e73] outline-none transition-all placeholder:text-gray-400 font-medium"
-                  required
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button 
-                  type="button"
-                  onClick={() => navigate('/')}
-                  className="flex-1 bg-[#f4f6f8] hover:bg-[#e9ecef] text-gray-600 py-3.5 rounded-xl font-bold transition-colors text-sm flex items-center justify-center gap-2"
-                >
-                  홈으로
-                </button>
-                <button 
-                  type="submit" 
-                  className="flex-[1.8] bg-[#009e73] hover:bg-[#008f68] text-white py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
-                >
-                  <LogIn size={18} />
-                  로그인 완료
-                </button>
-              </div>
-            </form>
-
-            <div className="mt-8 mb-6 relative flex items-center justify-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
-              </div>
-              <div className="relative bg-white px-4 text-xs font-bold text-gray-400 tracking-wider">
-                SNS 간편 소셜 로그인
-              </div>
-            </div>
+            )}
 
             <div className="space-y-3">
               <button type="button" onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
                 <div className="absolute left-4 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/24/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
+                  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>
                 </div>
                 Google 계정으로 원클릭 로그인
               </button>
-              <button type="button" className="w-full bg-[#fee500] hover:bg-[#e6ce00] text-gray-900 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
+              <button type="button" onClick={handleGoogleLogin} className="w-full bg-[#fee500] hover:bg-[#e6ce00] text-gray-900 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
                 <div className="absolute left-4 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/24/svg" fill="currentColor"><path d="M12 3c-5.5 0-10 3.5-10 7.8 0 2.8 1.8 5.3 4.5 6.6l-1 3.7c-.1.3 0 .7.3.8.3.2.7.2 1-.1l4.4-2.9c.2 0 .5.1.8.1 5.5 0 10-3.5 10-7.8S17.5 3 12 3z"/></svg>
+                  <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12 3c-5.5 0-10 3.5-10 7.8 0 2.8 1.8 5.3 4.5 6.6l-1 3.7c-.1.3 0 .7.3.8.3.2.7.2 1-.1l4.4-2.9c.2 0 .5.1.8.1 5.5 0 10-3.5 10-7.8S17.5 3 12 3z"/></svg>
                 </div>
                 카카오톡 3초 간편로그인
               </button>
-              <button type="button" className="w-full bg-[#03c75a] hover:bg-[#02b350] text-white py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
+              <button type="button" onClick={handleGoogleLogin} className="w-full bg-[#03c75a] hover:bg-[#02b350] text-white py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">
                 <div className="absolute left-4 font-black italic text-[20px] leading-none" style={{ fontFamily: 'Georgia, serif' }}>
                   N
                 </div>
                 네이버 아이디로 로그인
+              </button>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <button 
+                type="button"
+                onClick={() => navigate('/')}
+                className="w-full bg-[#f4f6f8] hover:bg-[#e9ecef] text-gray-700 py-3 rounded-xl font-bold transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                홈으로 돌아가기
               </button>
             </div>
           </div>
@@ -1330,58 +1395,207 @@ export default function AdminPage({
                           </div>
                           
                           <div>
-                            <h5 className="font-extrabold text-gray-700 mb-4 text-lg">파노라마 리스트</h5>
-                            <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
-                              {formVrUrl.split('\n').filter(url => url.trim() !== '').map((url, idx) => (
-                                <div key={idx} className={`relative shrink-0 w-64 aspect-video rounded-xl overflow-hidden border-4 snap-start transition-all ${idx === 0 ? 'border-[#ff6600]' : 'border-gray-200 hover:border-gray-300'}`}>
-                                  <img src={url.trim()} alt={`VR Photo ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Invalid+Image'; }} />
-                                  
-                                  {idx === 0 ? (
-                                    <>
-                                      <div className="absolute top-2 left-2 bg-[#ff6600] text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
-                                        ⭐ 대표 360사진
+                            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                              <h5 className="font-extrabold text-gray-800 text-base sm:text-lg flex items-center gap-2">
+                                <span>파노라마 리스트</span>
+                                <span className="text-xs sm:text-sm font-semibold text-[#ff6600]">
+                                  (가로 5장 배치 · 🖱️ 마우스 드래그&드롭 또는 화살표 버튼으로 순서 이동)
+                                </span>
+                              </h5>
+                              <span className="text-xs text-gray-500 font-medium">
+                                총 {formVrUrl.split('\n').filter(u => u.trim() !== '').length}장
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                              {formVrUrl.split('\n').filter(url => url.trim() !== '').map((url, idx, arr) => {
+                                const isDragging = draggedVrIndex === idx;
+                                const isDragOver = dragOverVrIndex === idx && !isDragging;
+
+                                return (
+                                  <div 
+                                    key={idx}
+                                    draggable={true}
+                                    onDragStart={(e) => {
+                                      setDraggedVrIndex(idx);
+                                      e.dataTransfer.effectAllowed = 'move';
+                                      e.dataTransfer.setData('text/plain', String(idx));
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                      if (dragOverVrIndex !== idx) setDragOverVrIndex(idx);
+                                    }}
+                                    onDragLeave={(e) => {
+                                      e.preventDefault();
+                                      if (dragOverVrIndex === idx) setDragOverVrIndex(null);
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      handleVrDrop(idx);
+                                    }}
+                                    onDragEnd={() => {
+                                      setDraggedVrIndex(null);
+                                      setDragOverVrIndex(null);
+                                    }}
+                                    className={`relative group aspect-video rounded-xl overflow-hidden border-2 transition-all bg-black/5 shadow-sm cursor-grab active:cursor-grabbing select-none ${
+                                      isDragging 
+                                        ? 'opacity-40 scale-95 border-dashed border-[#ff6600]' 
+                                        : isDragOver
+                                          ? 'border-[#ff6600] ring-4 ring-[#ff6600]/40 scale-105 z-20 shadow-xl'
+                                          : idx === 0 
+                                            ? 'border-[#ff6600] ring-2 ring-[#ff6600]/30' 
+                                            : 'border-gray-200 hover:border-gray-400'
+                                    }`}
+                                  >
+                                    <img src={url.trim()} alt={`VR Photo ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Invalid+Image'; }} />
+                                    
+                                    {/* Drag Grip Center Overlay on Hover */}
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                      <div className="bg-black/70 text-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow.md">
+                                        <GripVertical size={14} />
+                                        드래그하여 이동
                                       </div>
-                                      <div className="absolute top-2 right-2 text-yellow-400 drop-shadow-md">
-                                        <Star size={24} fill="currentColor" />
+                                    </div>
+
+                                    {/* Badge & Star Button */}
+                                    {idx === 0 ? (
+                                      <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm flex items-center gap-1 pointer-events-none">
+                                        <Star size={12} fill="currentColor" />
+                                        대표 360사진
                                       </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
-                                        VR 360 파노라마 실사
+                                    ) : (
+                                      <div className="absolute top-1.5 left-1.5 bg-emerald-600/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none">
+                                        VR {idx + 1}
                                       </div>
-                                      <button 
-                                        type="button" 
+                                    )}
+
+                                    {/* Top Right Action: Set Main or Delete */}
+                                    <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                                      {idx !== 0 && (
+                                        <button 
+                                          type="button" 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                            const selected = urls.splice(idx, 1)[0];
+                                            urls.unshift(selected);
+                                            setFormVrUrl(urls.join('\n'));
+                                          }}
+                                          className="bg-black/60 hover:bg-yellow-500 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                          title="대표 사진으로 설정"
+                                        >
+                                          <Star size={14} />
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
-                                          const selected = urls.splice(idx, 1)[0];
-                                          urls.unshift(selected);
+                                          urls.splice(idx, 1);
                                           setFormVrUrl(urls.join('\n'));
                                         }}
-                                        className="absolute top-2 right-2 text-gray-300 hover:text-yellow-400 drop-shadow-md transition-colors"
-                                        title="대표 사진으로 설정"
+                                        className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                        title="이미지 삭제"
                                       >
-                                        <Star size={24} fill="currentColor" />
+                                        <Trash2 size={14} />
                                       </button>
-                                    </>
-                                  )}
-                                  
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
-                                      urls.splice(idx, 1);
-                                      setFormVrUrl(urls.join('\n'));
-                                    }}
-                                    className="absolute bottom-2 right-2 bg-white text-red-500 p-2 rounded-lg hover:bg-red-50 shadow-md border border-gray-200 transition-colors"
-                                    title="이미지 삭제"
-                                  >
-                                    <Trash2 size={20} />
-                                  </button>
-                                </div>
-                              ))}
+                                    </div>
+
+                                    {/* Bottom Navigation Overlay (Up, Down, Left, Right) */}
+                                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-1.5 flex items-center justify-between text-white z-10">
+                                      <div className="flex items-center gap-1">
+                                        {/* Move Left */}
+                                        <button
+                                          type="button"
+                                          disabled={idx === 0}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                            if (idx > 0) {
+                                              const temp = urls[idx];
+                                              urls[idx] = urls[idx - 1];
+                                              urls[idx - 1] = temp;
+                                              setFormVrUrl(urls.join('\n'));
+                                            }
+                                          }}
+                                          className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                          title="왼쪽(이전)으로 이동"
+                                        >
+                                          <ChevronLeft size={16} />
+                                        </button>
+
+                                        {/* Move Right */}
+                                        <button
+                                          type="button"
+                                          disabled={idx === arr.length - 1}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                            if (idx < urls.length - 1) {
+                                              const temp = urls[idx];
+                                              urls[idx] = urls[idx + 1];
+                                              urls[idx + 1] = temp;
+                                              setFormVrUrl(urls.join('\n'));
+                                            }
+                                          }}
+                                          className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                          title="오른쪽(다음)으로 이동"
+                                        >
+                                          <ChevronRight size={16} />
+                                        </button>
+                                      </div>
+
+                                      <div className="text-[11px] font-mono text-gray-200 pointer-events-none">
+                                        {idx + 1} / {arr.length}
+                                      </div>
+
+                                      <div className="flex items-center gap-1">
+                                        {/* Move Up (5 steps backward) */}
+                                        <button
+                                          type="button"
+                                          disabled={idx < 5}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                            if (idx >= 5) {
+                                              const temp = urls[idx];
+                                              urls[idx] = urls[idx - 5];
+                                              urls[idx - 5] = temp;
+                                              setFormVrUrl(urls.join('\n'));
+                                            }
+                                          }}
+                                          className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                          title="위로 이동 (1줄 위)"
+                                        >
+                                          <ChevronUp size={16} />
+                                        </button>
+
+                                        {/* Move Down (5 steps forward) */}
+                                        <button
+                                          type="button"
+                                          disabled={idx + 5 >= arr.length}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                            if (idx + 5 < urls.length) {
+                                              const temp = urls[idx];
+                                              urls[idx] = urls[idx + 5];
+                                              urls[idx + 5] = temp;
+                                              setFormVrUrl(urls.join('\n'));
+                                            }
+                                          }}
+                                          className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                          title="아래로 이동 (1줄 아래)"
+                                        >
+                                          <ChevronDown size={16} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
@@ -1708,6 +1922,267 @@ export default function AdminPage({
                         : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600]'
                     }`}
                   />
+                </div>
+
+                {/* 21. 블로그 */}
+                <div className="space-y-4 pt-4 border-t-2 border-gray-100">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <label className="text-base sm:text-lg font-bold text-[#ff6600] flex items-center gap-2">
+                      <FileText size={22} />
+                      21. 블로그 (게시판 포스팅 및 사진 첨부)
+                    </label>
+                    <span className="text-xs sm:text-sm text-gray-500 font-semibold">매물과 연동되는 블로그 설명글 및 사진 게시판</span>
+                  </div>
+
+                  <textarea 
+                    value={detailBlog}
+                    onChange={(e) => setDetailBlog(e.target.value)}
+                    placeholder="21. 블로그에 게시할 상세 포스팅 내용을 작성하세요. (사진 첨부 기능 지원)"
+                    className={`w-full border-2 rounded-xl p-4 text-base sm:text-lg outline-none min-h-[140px] resize-y transition-all ${
+                      detailBlog && detailBlog.trim() !== '' 
+                        ? 'border-emerald-500 bg-emerald-50/10 text-gray-900 focus:border-emerald-600' 
+                        : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600]'
+                    }`}
+                  />
+
+                  {/* Blog Image Upload Control */}
+                  <div className="space-y-3 bg-orange-50/50 p-4 rounded-xl border border-orange-200">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm sm:text-base font-extrabold text-gray-800 flex items-center gap-1.5">
+                          <UploadCloud size={18} className="text-[#ff6600]" />
+                          블로그 사진/이미지 첨부 ({detailBlogImages.length}장)
+                        </span>
+                        <span className="text-xs font-semibold text-[#ff6600]">
+                          (가로 5장 배치 · 🖱️ 드래그&드롭 및 순서 이동 가능)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => blogFileInputRef.current?.click()}
+                        disabled={isUploadingBlogImg}
+                        className="bg-[#ff6600] hover:bg-[#e65c00] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isUploadingBlogImg ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            업로드 중... ({Math.round(blogUploadProgress)}%)
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={16} />
+                            블로그 사진 선택 (다중 가능)
+                          </>
+                        )}
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={blogFileInputRef} 
+                        onChange={handleBlogFileUpload} 
+                        accept="image/*" 
+                        multiple 
+                        className="hidden" 
+                      />
+                    </div>
+
+                    {/* Blog Images Preview - 5 Per Row Grid with Drag&Drop */}
+                    {detailBlogImages.length > 0 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 pt-2">
+                        {detailBlogImages.map((imgUrl, imgIdx, arr) => {
+                          const isDragging = draggedBlogIndex === imgIdx;
+                          const isDragOver = dragOverBlogIndex === imgIdx && !isDragging;
+
+                          return (
+                            <div 
+                              key={imgIdx}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                setDraggedBlogIndex(imgIdx);
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', String(imgIdx));
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                                if (dragOverBlogIndex !== imgIdx) setDragOverBlogIndex(imgIdx);
+                              }}
+                              onDragLeave={(e) => {
+                                e.preventDefault();
+                                if (dragOverBlogIndex === imgIdx) setDragOverBlogIndex(null);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                handleBlogDrop(imgIdx);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedBlogIndex(null);
+                                setDragOverBlogIndex(null);
+                              }}
+                              className={`relative group aspect-video rounded-xl overflow-hidden border-2 transition-all bg-black/5 shadow-sm cursor-grab active:cursor-grabbing select-none ${
+                                isDragging 
+                                  ? 'opacity-40 scale-95 border-dashed border-[#ff6600]' 
+                                  : isDragOver
+                                    ? 'border-[#ff6600] ring-4 ring-[#ff6600]/40 scale-105 z-20 shadow-xl'
+                                    : imgIdx === 0 
+                                      ? 'border-[#ff6600] ring-2 ring-[#ff6600]/30' 
+                                      : 'border-gray-200 hover:border-gray-400'
+                              }`}
+                            >
+                              <img src={imgUrl} alt={`블로그 이미지 ${imgIdx + 1}`} className="w-full h-full object-cover pointer-events-none" />
+
+                              {/* Hover Overlay indicating drag */}
+                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                <div className="bg-black/70 text-white px-2 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 shadow-md">
+                                  <GripVertical size={13} />
+                                  드래그 이동
+                                </div>
+                              </div>
+
+                              {/* Badges */}
+                              {imgIdx === 0 ? (
+                                <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm flex items-center gap-1 pointer-events-none">
+                                  <Star size={12} fill="currentColor" />
+                                  대표 사진
+                                </div>
+                              ) : (
+                                <div className="absolute top-1.5 left-1.5 bg-gray-800/80 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none">
+                                  사진 {imgIdx + 1}
+                                </div>
+                              )}
+
+                              {/* Top Right Action Buttons: Set as Representative / Delete */}
+                              <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                                {imgIdx !== 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDetailBlogImages(prev => {
+                                        const next = [...prev];
+                                        const selected = next.splice(imgIdx, 1)[0];
+                                        next.unshift(selected);
+                                        return next;
+                                      });
+                                    }}
+                                    className="bg-black/60 hover:bg-yellow-500 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                    title="대표 사진으로 설정"
+                                  >
+                                    <Star size={14} />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailBlogImages(prev => prev.filter((_, idx) => idx !== imgIdx));
+                                  }}
+                                  className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                  title="사진 삭제"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+
+                              {/* Bottom Control Overlay (Left, Right, Up, Down Navigation) */}
+                              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-1.5 flex items-center justify-between text-white z-10">
+                                <div className="flex items-center gap-1">
+                                  {/* Move Left */}
+                                  <button
+                                    type="button"
+                                    disabled={imgIdx === 0}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDetailBlogImages(prev => {
+                                        if (imgIdx === 0) return prev;
+                                        const next = [...prev];
+                                        const temp = next[imgIdx];
+                                        next[imgIdx] = next[imgIdx - 1];
+                                        next[imgIdx - 1] = temp;
+                                        return next;
+                                      });
+                                    }}
+                                    className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                    title="왼쪽(이전)으로 이동"
+                                  >
+                                    <ChevronLeft size={16} />
+                                  </button>
+
+                                  {/* Move Right */}
+                                  <button
+                                    type="button"
+                                    disabled={imgIdx === arr.length - 1}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDetailBlogImages(prev => {
+                                        if (imgIdx === arr.length - 1) return prev;
+                                        const next = [...prev];
+                                        const temp = next[imgIdx];
+                                        next[imgIdx] = next[imgIdx + 1];
+                                        next[imgIdx + 1] = temp;
+                                        return next;
+                                      });
+                                    }}
+                                    className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                    title="오른쪽(다음)으로 이동"
+                                  >
+                                    <ChevronRight size={16} />
+                                  </button>
+                                </div>
+
+                                <div className="text-[11px] font-mono text-gray-200 pointer-events-none">
+                                  {imgIdx + 1} / {arr.length}
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                  {/* Move Up (1 row up = -5) */}
+                                  <button
+                                    type="button"
+                                    disabled={imgIdx < 5}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDetailBlogImages(prev => {
+                                        if (imgIdx < 5) return prev;
+                                        const next = [...prev];
+                                        const temp = next[imgIdx];
+                                        next[imgIdx] = next[imgIdx - 5];
+                                        next[imgIdx - 5] = temp;
+                                        return next;
+                                      });
+                                    }}
+                                    className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                    title="위로 이동 (1줄 위)"
+                                  >
+                                    <ChevronUp size={16} />
+                                  </button>
+
+                                  {/* Move Down (1 row down = +5) */}
+                                  <button
+                                    type="button"
+                                    disabled={imgIdx + 5 >= arr.length}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDetailBlogImages(prev => {
+                                        if (imgIdx + 5 >= arr.length) return prev;
+                                        const next = [...prev];
+                                        const temp = next[imgIdx];
+                                        next[imgIdx] = next[imgIdx + 5];
+                                        next[imgIdx + 5] = temp;
+                                        return next;
+                                      });
+                                    }}
+                                    className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                    title="아래로 이동 (1줄 아래)"
+                                  >
+                                    <ChevronDown size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
