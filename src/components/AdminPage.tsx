@@ -1387,7 +1387,13 @@ export default function AdminPage({
 
                       {/* Image Grid */}
                       {formVrUrl && formVrUrl.trim() !== '' && (
-                        <div className="mt-6">
+                        <div className="mt-6 space-y-6">
+                          <div className="p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            <div className="w-full aspect-[2/1] sm:aspect-video rounded-lg overflow-hidden border border-gray-200 shadow-sm relative">
+                              <img src={formVrUrl.split('\n').filter(url => url.trim() !== '')[0]?.trim()} alt="대표 VR 이미지" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x400?text=Invalid+Image'; }} />
+                            </div>
+                          </div>
+                          
                           <div>
                             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                               <h5 className="font-extrabold text-gray-800 text-base sm:text-lg flex items-center gap-2">
@@ -1437,26 +1443,51 @@ export default function AdminPage({
                                         ? 'opacity-40 scale-95 border-dashed border-[#ff6600]' 
                                         : isDragOver
                                           ? 'border-[#ff6600] ring-4 ring-[#ff6600]/40 scale-105 z-20 shadow-xl'
-                                          : 'border-gray-200 hover:border-gray-400'
+                                          : idx === 0 
+                                            ? 'border-[#ff6600] ring-2 ring-[#ff6600]/30' 
+                                            : 'border-gray-200 hover:border-gray-400'
                                     }`}
                                   >
                                     <img src={url.trim()} alt={`VR Photo ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Invalid+Image'; }} />
                                     
                                     {/* Drag Grip Center Overlay on Hover */}
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 pointer-events-none p-2">
-                                      <div className="bg-black/80 text-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-md">
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                      <div className="bg-black/70 text-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow.md">
                                         <GripVertical size={14} />
                                         드래그하여 이동
                                       </div>
                                     </div>
 
-                                    {/* Badge */}
-                                    <div className="absolute top-1.5 left-1.5 bg-emerald-600/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none z-10">
-                                      VR {idx + 1}
-                                    </div>
+                                    {/* Badge & Star Button */}
+                                    {idx === 0 ? (
+                                      <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm flex items-center gap-1 pointer-events-none">
+                                        <Star size={12} fill="currentColor" />
+                                        대표 360사진
+                                      </div>
+                                    ) : (
+                                      <div className="absolute top-1.5 left-1.5 bg-emerald-600/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none">
+                                        VR {idx + 1}
+                                      </div>
+                                    )}
 
-                                    {/* Top Right Action: Delete */}
+                                    {/* Top Right Action: Set Main or Delete */}
                                     <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                                      {idx !== 0 && (
+                                        <button 
+                                          type="button" 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                            const selected = urls.splice(idx, 1)[0];
+                                            urls.unshift(selected);
+                                            setFormVrUrl(urls.join('\n'));
+                                          }}
+                                          className="bg-black/60 hover:bg-yellow-500 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                          title="대표 사진으로 설정"
+                                        >
+                                          <Star size={14} />
+                                        </button>
+                                      )}
                                       <button
                                         type="button"
                                         onClick={(e) => {
