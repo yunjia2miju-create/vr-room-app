@@ -57,21 +57,23 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   const renderTopLeft = () => (
     <div 
       style={styleOpacity} 
-      className="absolute top-3 left-3 z-20 bg-gradient-to-r from-[#ff6600] to-[#e65c00] text-white text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 border border-white/30 backdrop-blur-xs select-none"
+      className="absolute top-1 left-1 sm:top-2 sm:left-2 md:top-2.5 md:left-2.5 z-20 bg-gradient-to-r from-[#ff6600]/30 to-[#e65c00]/30 md:from-[#ff6600]/90 md:to-[#e65c00]/90 text-white/80 md:text-white text-[8px] sm:text-[10px] md:text-xs font-extrabold px-1 py-0.5 sm:px-2 sm:py-0.5 md:px-2.5 md:py-1 rounded sm:rounded-md md:rounded-lg shadow-2xs md:shadow-md flex items-center gap-0.5 sm:gap-1 md:gap-1.5 border border-white/15 md:border-white/30 backdrop-blur-[0.5px] md:backdrop-blur-xs select-none max-w-[85%] truncate"
     >
-      {showIcon && <Star size={14} fill="currentColor" className="text-yellow-300 animate-pulse" />}
-      <span>{customTopText || `⭐ [태왕 360 VR] 100% 현장 검증 실매물`}</span>
+      {showIcon && <Star size={11} fill="currentColor" className="text-yellow-300/80 md:text-yellow-300 animate-pulse shrink-0 hidden sm:inline-block" />}
+      <span className="truncate">{customTopText || `⭐ [태왕 360 VR] 100% 현장 검증 실매물`}</span>
     </div>
   );
 
   const renderCenter = () => (
     <div 
       style={styleOpacity}
-      className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-4"
+      className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1 sm:p-2 md:p-4"
     >
-      <div className="bg-black/10 text-white border border-white/20 backdrop-blur-[1px] rounded-2xl px-6 py-4 text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight flex items-center gap-3.5 shadow-xl rotate-0 select-none text-center max-w-[95%]">
-        {showIcon && <TaewangLogoIcon size={44} className="sm:w-12 sm:h-12 md:w-14 md:h-14" />}
-        <span className="drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] text-white">
+      <div className="bg-black/10 md:bg-black/20 text-white/85 md:text-white border border-white/15 md:border-white/30 backdrop-blur-[0.5px] md:backdrop-blur-[1.5px] rounded-md sm:rounded-xl md:rounded-2xl px-2 py-0.5 sm:px-3 sm:py-1.5 md:px-6 md:py-3 text-[10px] sm:text-xs md:text-xl lg:text-3xl font-black tracking-tight flex items-center gap-1 sm:gap-2 md:gap-3 shadow-xs md:shadow-xl rotate-0 select-none text-center max-w-[94%] whitespace-nowrap">
+        {showIcon && (
+          <TaewangLogoIcon className="w-3 h-3 sm:w-4 sm:h-4 md:w-8 md:h-8 shrink-0 opacity-80 md:opacity-100" />
+        )}
+        <span className="drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] md:drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] text-white/90 md:text-white truncate">
           {customCenterText || `${officeName} 360 VR 실매물`}
         </span>
       </div>
@@ -81,10 +83,10 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   const renderBottomRight = () => (
     <div 
       style={styleOpacity} 
-      className="absolute bottom-3 right-3 z-20 bg-gray-950/85 text-white text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-xl shadow-lg flex items-center gap-2 border border-white/20 backdrop-blur-md select-none"
+      className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 md:bottom-2.5 md:right-2.5 z-20 bg-gray-950/25 md:bg-gray-950/80 text-white/80 md:text-white text-[8px] sm:text-[10px] md:text-xs font-bold px-1 py-0.5 sm:px-2 sm:py-0.5 md:px-3 md:py-1 rounded sm:rounded-lg md:rounded-xl shadow-2xs md:shadow-md flex items-center gap-0.5 sm:gap-1 md:gap-1.5 border border-white/10 md:border-white/20 backdrop-blur-[0.5px] md:backdrop-blur-xs select-none max-w-[85%] truncate"
     >
-      {showIcon && <Phone size={14} className="text-[#ff6600] shrink-0" />}
-      <span>{customBottomText || `📞 상담문의: ${phone} (${officeName.slice(0, 4)})`}</span>
+      {showIcon && <Phone size={11} className="text-[#ff6600]/80 md:text-[#ff6600] shrink-0 hidden sm:inline-block" />}
+      <span className="truncate">{customBottomText || `📞 상담문의: ${phone} (${officeName.slice(0, 4)})`}</span>
     </div>
   );
 

@@ -4,18 +4,6 @@ import AdminPage from './components/AdminPage';
 import VrViewer from './components/VrViewer';
 import WatermarkOverlay, { WatermarkPosition } from './components/WatermarkOverlay';
 import { auth } from './firebase';
-
-export const PROPERTIES = [
-  { id: '1', mgt: '태왕', name: '크라운빌', addr: '사곡동 422-168', room: '501', type: '미투', contract: '월', deposit: '300', rent: '30', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '출비 : 1543#', vr: true },
-  { id: '2', mgt: '태왕', name: '어린왕자 하나', addr: '옥계동 950', room: '301', type: '미투', contract: '월', deposit: '300', rent: '35', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
-  { id: '3', mgt: '태왕', name: '고야드', addr: '사곡동 267-54', room: '301', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '30', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '현)4119', vr: false },
-  { id: '4', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '206', type: '미투', contract: '반전. 월 가능', deposit: '300', rent: '40', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '승강기 있음. 보증금 월세조정가능', vr: true },
-  { id: '5', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '205', type: '미투', contract: '전세.반전. 월 가능', deposit: '300\n5,000', rent: '38\n8', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '승강기있음. 보증금월세조정가능', vr: true },
-  { id: '6', mgt: '태왕', name: '힐링타운', addr: '송정동 26-9', room: '305', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '28', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '즉시 입주가능', vr: false },
-  { id: '7', mgt: '태왕', name: '리치하우스', addr: '사곡동 422-56', room: '201', type: '투룸', contract: '월 가능, 풀 옵션', deposit: '300', rent: '55', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
-  { id: '8', mgt: '태왕', name: '이화빌', addr: '형곡동 192-8', room: '205', type: '미투', contract: '월 가능, 풀 옵션', deposit: '200', rent: '32', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
-];
-
 import { 
   Building2, 
   Check, 
@@ -28,6 +16,17 @@ import {
   Shield, 
   X 
 } from 'lucide-react';
+
+export const PROPERTIES = [
+  { id: '1', mgt: '태왕', name: '크라운빌', addr: '사곡동 422-168', room: '501', type: '미투', contract: '월', deposit: '300', rent: '30', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '출비 : 1543#', vr: true },
+  { id: '2', mgt: '태왕', name: '어린왕자 하나', addr: '옥계동 950', room: '301', type: '미투', contract: '월', deposit: '300', rent: '35', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
+  { id: '3', mgt: '태왕', name: '고야드', addr: '사곡동 267-54', room: '301', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '30', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '현)4119', vr: false },
+  { id: '4', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '206', type: '미투', contract: '반전. 월 가능', deposit: '300', rent: '40', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '승강기 있음. 보증금 월세조정가능', vr: true },
+  { id: '5', mgt: '태왕', name: '니캉내캉', addr: '원평동 1034-10', room: '205', type: '미투', contract: '전세.반전. 월 가능', deposit: '300\n5,000', rent: '38\n8', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '승강기있음. 보증금월세조정가능', vr: true },
+  { id: '6', mgt: '태왕', name: '힐링타운', addr: '송정동 26-9', room: '305', type: '원룸', contract: '월 가능, 풀 옵션', deposit: '200', rent: '28', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '즉시 입주가능', vr: false },
+  { id: '7', mgt: '태왕', name: '리치하우스', addr: '사곡동 422-56', room: '201', type: '투룸', contract: '월 가능, 풀 옵션', deposit: '300', rent: '55', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
+  { id: '8', mgt: '태왕', name: '이화빌', addr: '형곡동 192-8', room: '205', type: '미투', contract: '월 가능, 풀 옵션', deposit: '200', rent: '32', phone: '사무실 054-455-6789, 휴대폰 010-7590-0111', note: '', vr: true },
+];
 
 function getTodayDateString() {
   const d = new Date();

@@ -35,7 +35,8 @@ import {
   Star,
   GripVertical,
   Move,
-  HardDrive
+  HardDrive,
+  Shield
 } from 'lucide-react';
 
 interface Property {
