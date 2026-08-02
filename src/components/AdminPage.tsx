@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage, auth, googleProvider } from '../firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
+import WatermarkOverlay, { WatermarkPosition } from './WatermarkOverlay';
 import { 
   Building2, 
   Plus, 
@@ -214,6 +215,10 @@ export default function AdminPage({
     setDraggedBlogIndex(null);
     setDragOverBlogIndex(null);
   };
+
+  // Watermark Settings State
+  const [adminWatermarkPos, setAdminWatermarkPos] = useState<WatermarkPosition>('all');
+  const [showAdminWatermark, setShowAdminWatermark] = useState<boolean>(true);
 
   // Image File Sizes tracking state
   const [imageSizes, setImageSizes] = useState<Record<string, number>>({});
@@ -2049,6 +2054,91 @@ export default function AdminPage({
                       />
                     </div>
 
+                    {/* Watermark Control Card */}
+                    <div className="bg-white p-4 rounded-xl border border-orange-200 shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Shield size={18} className="text-[#ff6600]" />
+                          <span className="text-sm font-extrabold text-gray-800">
+                            블로그 사진 워터마크 자동 삽입 & 추천 위치 설정
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500 font-semibold">워터마크 표시:</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowAdminWatermark(!showAdminWatermark)}
+                            className={`px-3 py-1 rounded-full text-xs font-extrabold transition-all cursor-pointer ${
+                              showAdminWatermark ? 'bg-emerald-500 text-white shadow-2xs' : 'bg-gray-200 text-gray-600'
+                            }`}
+                          >
+                            {showAdminWatermark ? '✓ ON (적용중)' : '✕ OFF (숨김)'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {showAdminWatermark && (
+                        <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
+                          <div className="text-xs font-extrabold text-gray-700 flex items-center gap-1">
+                            💡 전문가 추천 3가지 워터마크 위치 및 문구 옵션:
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setAdminWatermarkPos('all')}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                adminWatermarkPos === 'all'
+                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                              }`}
+                            >
+                              <div className="text-xs font-black text-[#ff6600] mb-0.5">🌟 전체 조합 (추천 1+2+3)</div>
+                              <div className="text-[11px] text-gray-600 font-medium">3개 위치 정밀 배치하여 완벽 도용방지</div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setAdminWatermarkPos('center')}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                adminWatermarkPos === 'center'
+                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                              }`}
+                            >
+                              <div className="text-xs font-black text-[#ff6600] mb-0.5">🏢 추천 1: 중앙 수평 마크 (대형)</div>
+                              <div className="text-[11px] text-gray-600 font-medium">태왕공인중개사사무소 360 VR 실매물 (10% 반투명)</div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setAdminWatermarkPos('bottom-right')}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                adminWatermarkPos === 'bottom-right'
+                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                              }`}
+                            >
+                              <div className="text-xs font-black text-[#ff6600] mb-0.5">📞 추천 2: 우측하단 전화문의</div>
+                              <div className="text-[11px] text-gray-600 font-medium">📞 상담문의: 054-455-6789 (태왕공인)</div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setAdminWatermarkPos('top-left')}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                adminWatermarkPos === 'top-left'
+                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                              }`}
+                            >
+                              <div className="text-xs font-black text-[#ff6600] mb-0.5">⭐ 추천 3: 좌측상단 실매물 보증</div>
+                              <div className="text-[11px] text-gray-600 font-medium">⭐ [태왕 360 VR] 100% 현장 검증</div>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Blog Images Preview - 5 Per Row Grid with Drag&Drop */}
                     {detailBlogImages.length > 0 && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 pt-2">
@@ -2093,6 +2183,7 @@ export default function AdminPage({
                               }`}
                             >
                               <img src={imgUrl} alt={`블로그 이미지 ${imgIdx + 1}`} className="w-full h-full object-cover pointer-events-none" />
+                              {showAdminWatermark && <WatermarkOverlay position={adminWatermarkPos} />}
 
                               {/* Hover Overlay indicating drag */}
                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
