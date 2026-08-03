@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://054-455-6789.com/sitemap.xml
