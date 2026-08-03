@@ -40,6 +40,7 @@ export interface WatermarkProps {
   officeName?: string;
   phone?: string;
   showIcon?: boolean;
+  compact?: boolean; // When true, renders appropriately scaled down for small preview grid containers
 }
 
 export const WatermarkOverlay: React.FC<WatermarkProps> = ({
@@ -51,15 +52,63 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   officeName = '태왕공인중개사사무소',
   phone = '054-455-6789',
   showIcon = true,
+  compact = false,
 }) => {
   const styleOpacity = { opacity };
 
+  if (compact) {
+    const renderCompactTopLeft = () => (
+      <div 
+        style={styleOpacity} 
+        className="absolute top-1 left-1 z-20 bg-gradient-to-r from-[#ff6600]/90 to-[#e65c00]/90 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 border border-white/20 backdrop-blur-2xs select-none max-w-[88%] truncate pointer-events-none"
+      >
+        {showIcon && <Star size={10} fill="currentColor" className="text-yellow-300 shrink-0" />}
+        <span className="truncate">{customTopText || `⭐ [태왕 360 VR] 현장검증`}</span>
+      </div>
+    );
+
+    const renderCompactCenter = () => (
+      <div 
+        style={styleOpacity}
+        className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1"
+      >
+        <div className="bg-black/45 text-white border border-white/30 backdrop-blur-2xs rounded-md px-2 py-0.5 text-[10px] font-black tracking-tight flex items-center gap-1 shadow-xs select-none text-center max-w-[92%] whitespace-nowrap overflow-hidden text-ellipsis">
+          {showIcon && (
+            <TaewangLogoIcon className="w-3.5 h-3.5 shrink-0 opacity-95" />
+          )}
+          <span className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] text-white truncate">
+            {customCenterText || `${officeName} 360 VR`}
+          </span>
+        </div>
+      </div>
+    );
+
+    const renderCompactBottomRight = () => (
+      <div 
+        style={styleOpacity} 
+        className="absolute bottom-1 right-1 z-20 bg-gray-950/85 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 border border-white/20 backdrop-blur-2xs select-none max-w-[88%] truncate pointer-events-none"
+      >
+        {showIcon && <Phone size={10} className="text-[#ff6600] shrink-0" />}
+        <span className="truncate">{customBottomText || `📞 ${phone} (태왕)`}</span>
+      </div>
+    );
+
+    return (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-inherit">
+        {(position === 'top-left' || position === 'all') && renderCompactTopLeft()}
+        {(position === 'center' || position === 'all') && renderCompactCenter()}
+        {(position === 'bottom-right' || position === 'all') && renderCompactBottomRight()}
+      </div>
+    );
+  }
+
+  // Full size / standard overlay
   const renderTopLeft = () => (
     <div 
       style={styleOpacity} 
-      className="absolute top-1 left-1 sm:top-2 sm:left-2 md:top-2.5 md:left-2.5 z-20 bg-gradient-to-r from-[#ff6600]/30 to-[#e65c00]/30 md:from-[#ff6600]/90 md:to-[#e65c00]/90 text-white/80 md:text-white text-[8px] sm:text-[10px] md:text-xs font-extrabold px-1 py-0.5 sm:px-2 sm:py-0.5 md:px-2.5 md:py-1 rounded sm:rounded-md md:rounded-lg shadow-2xs md:shadow-md flex items-center gap-0.5 sm:gap-1 md:gap-1.5 border border-white/15 md:border-white/30 backdrop-blur-[0.5px] md:backdrop-blur-xs select-none max-w-[85%] truncate"
+      className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 md:top-3 md:left-3 z-20 bg-gradient-to-r from-[#ff6600]/90 to-[#e65c00]/90 text-white text-[10px] sm:text-xs md:text-sm font-extrabold px-2 py-1 sm:px-3 sm:py-1 md:px-3.5 md:py-1.5 rounded-md sm:rounded-lg md:rounded-xl shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/30 backdrop-blur-xs select-none max-w-[85%] truncate"
     >
-      {showIcon && <Star size={11} fill="currentColor" className="text-yellow-300/80 md:text-yellow-300 animate-pulse shrink-0 hidden sm:inline-block" />}
+      {showIcon && <Star size={13} fill="currentColor" className="text-yellow-300 shrink-0" />}
       <span className="truncate">{customTopText || `⭐ [태왕 360 VR] 100% 현장 검증 실매물`}</span>
     </div>
   );
@@ -67,13 +116,13 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   const renderCenter = () => (
     <div 
       style={styleOpacity}
-      className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1 sm:p-2 md:p-4"
+      className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-2 sm:p-4 md:p-6"
     >
-      <div className="bg-black/10 md:bg-black/20 text-white/85 md:text-white border border-white/15 md:border-white/30 backdrop-blur-[0.5px] md:backdrop-blur-[1.5px] rounded-md sm:rounded-xl md:rounded-2xl px-2 py-0.5 sm:px-3 sm:py-1.5 md:px-6 md:py-3 text-[10px] sm:text-xs md:text-xl lg:text-3xl font-black tracking-tight flex items-center gap-1 sm:gap-2 md:gap-3 shadow-xs md:shadow-xl rotate-0 select-none text-center max-w-[94%] whitespace-nowrap">
+      <div className="bg-black/35 text-white border border-white/35 backdrop-blur-xs rounded-xl sm:rounded-2xl md:rounded-3xl px-3 py-1.5 sm:px-5 sm:py-2.5 md:px-8 md:py-4 text-xs sm:text-base md:text-xl lg:text-2xl font-black tracking-tight flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 shadow-xl select-none text-center max-w-[92%] whitespace-nowrap overflow-hidden text-ellipsis">
         {showIcon && (
-          <TaewangLogoIcon className="w-3 h-3 sm:w-4 sm:h-4 md:w-8 md:h-8 shrink-0 opacity-80 md:opacity-100" />
+          <TaewangLogoIcon className="w-4 h-4 sm:w-6 sm:h-6 md:w-9 md:h-9 shrink-0 opacity-100" />
         )}
-        <span className="drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] md:drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] text-white/90 md:text-white truncate">
+        <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] text-white truncate">
           {customCenterText || `${officeName} 360 VR 실매물`}
         </span>
       </div>
@@ -83,9 +132,9 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   const renderBottomRight = () => (
     <div 
       style={styleOpacity} 
-      className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 md:bottom-2.5 md:right-2.5 z-20 bg-gray-950/25 md:bg-gray-950/80 text-white/80 md:text-white text-[8px] sm:text-[10px] md:text-xs font-bold px-1 py-0.5 sm:px-2 sm:py-0.5 md:px-3 md:py-1 rounded sm:rounded-lg md:rounded-xl shadow-2xs md:shadow-md flex items-center gap-0.5 sm:gap-1 md:gap-1.5 border border-white/10 md:border-white/20 backdrop-blur-[0.5px] md:backdrop-blur-xs select-none max-w-[85%] truncate"
+      className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 md:bottom-3 md:right-3 z-20 bg-gray-950/85 text-white text-[10px] sm:text-xs md:text-sm font-bold px-2 py-1 sm:px-3 sm:py-1 md:px-3.5 md:py-1.5 rounded-md sm:rounded-lg md:rounded-xl shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/20 backdrop-blur-xs select-none max-w-[85%] truncate"
     >
-      {showIcon && <Phone size={11} className="text-[#ff6600]/80 md:text-[#ff6600] shrink-0 hidden sm:inline-block" />}
+      {showIcon && <Phone size={13} className="text-[#ff6600] shrink-0" />}
       <span className="truncate">{customBottomText || `📞 상담문의: ${phone} (${officeName.slice(0, 4)})`}</span>
     </div>
   );

@@ -127,7 +127,7 @@ export default function AdminPage({
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
 
   // Form Fields
-  const [formMgt, setFormMgt] = useState('태왕');
+  const [formMgt, setFormMgt] = useState('TW');
   const [formName, setFormName] = useState('');
   const [formAddr, setFormAddr] = useState('');
   const [formRoom, setFormRoom] = useState('');
@@ -595,7 +595,7 @@ export default function AdminPage({
   // Open form for creating
   const openCreateForm = () => {
     setEditingProperty(null);
-    setFormMgt('태왕');
+    setFormMgt('TW');
     setFormName('');
     setFormAddr('');
     setFormRoom('');
@@ -637,7 +637,7 @@ export default function AdminPage({
   // Open form for editing
   const openEditForm = (property: Property) => {
     setEditingProperty(property);
-    setFormMgt(property.mgt || '태왕');
+    setFormMgt('TW');
     setFormName(property.name);
     setFormAddr(property.addr);
     setFormRoom(property.room);
@@ -1226,13 +1226,9 @@ export default function AdminPage({
                     <label className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-1">관리부동산 업체</label>
                     <input 
                       type="text"
-                      value={formMgt}
-                      onChange={(e) => setFormMgt(e.target.value)}
-                      className={`w-full border-2 rounded-xl px-4 py-3 sm:py-3.5 text-base sm:text-lg outline-none transition-all ${
-                        formMgt && formMgt.trim() !== '' 
-                          ? 'border-emerald-500 bg-emerald-50/10 text-gray-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' 
-                          : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600] focus:ring-1 focus:ring-[#ff6600]'
-                      }`}
+                      value="TW"
+                      readOnly={true}
+                      className="w-full border-2 border-gray-200 bg-gray-100 text-gray-900 font-bold rounded-xl px-4 py-3 sm:py-3.5 text-base sm:text-lg outline-none cursor-not-allowed select-none"
                     />
                   </div>
 
@@ -1312,17 +1308,42 @@ export default function AdminPage({
 
                   <div className="space-y-2">
                     <label className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-1">계약 형태</label>
-                    <input 
-                      type="text"
-                      value={formContract}
-                      onChange={(e) => setFormContract(e.target.value)}
-                      placeholder="예) 월세, 전세, 전세·반전세"
-                      className={`w-full border-2 rounded-xl px-4 py-3 sm:py-3.5 text-base sm:text-lg outline-none transition-all ${
-                        formContract && formContract.trim() !== '' 
-                          ? 'border-emerald-500 bg-emerald-50/10 text-gray-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' 
-                          : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600] focus:ring-1 focus:ring-[#ff6600]'
-                      }`}
-                    />
+                    <div className="space-y-2">
+                      <select 
+                        value={['월세', '전세', '매매'].includes(formContract) ? formContract : '직접입력'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '직접입력') {
+                            if (['월세', '전세', '매매'].includes(formContract)) {
+                              setFormContract('');
+                            }
+                          } else {
+                            setFormContract(val);
+                          }
+                        }}
+                        className={`w-full border-2 rounded-xl px-4 py-3 sm:py-3.5 text-base sm:text-lg bg-white outline-none transition-all cursor-pointer ${
+                          formContract 
+                            ? 'border-emerald-500 bg-emerald-50/10 text-gray-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500' 
+                            : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600] focus:ring-1 focus:ring-[#ff6600]'
+                        }`}
+                      >
+                        <option value="월세">월세</option>
+                        <option value="전세">전세</option>
+                        <option value="매매">매매</option>
+                        <option value="직접입력">직접입력</option>
+                      </select>
+
+                      {!['월세', '전세', '매매'].includes(formContract) && (
+                        <input 
+                          type="text"
+                          value={formContract}
+                          onChange={(e) => setFormContract(e.target.value)}
+                          placeholder="계약 형태 직접 입력 (예: 반전세, 전세·반전세)"
+                          className="w-full border-2 border-emerald-500 bg-emerald-50/10 text-gray-900 rounded-xl px-4 py-3 sm:py-3.5 text-base sm:text-lg outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 transition-all"
+                          autoFocus
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -2184,7 +2205,7 @@ export default function AdminPage({
                               }`}
                             >
                               <img src={imgUrl} alt={`블로그 이미지 ${imgIdx + 1}`} className="w-full h-full object-cover pointer-events-none" />
-                              {showAdminWatermark && <WatermarkOverlay position={adminWatermarkPos} />}
+                              {showAdminWatermark && <WatermarkOverlay position={adminWatermarkPos} compact={true} />}
 
                               {/* Hover Overlay indicating drag */}
                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
