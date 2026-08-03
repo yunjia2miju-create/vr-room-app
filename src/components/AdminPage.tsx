@@ -218,7 +218,7 @@ export default function AdminPage({
   };
 
   // Watermark Settings State
-  const [adminWatermarkPos, setAdminWatermarkPos] = useState<WatermarkPosition>('all');
+  const [adminWatermarkPos, setAdminWatermarkPos] = useState<WatermarkPosition>('center');
   const [showAdminWatermark, setShowAdminWatermark] = useState<boolean>(true);
 
   // Image File Sizes tracking state

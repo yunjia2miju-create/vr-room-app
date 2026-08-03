@@ -1156,7 +1156,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
   const [copiedPos, setCopiedPos] = useState<string | null>(null);
-  const [watermarkStyle, setWatermarkStyle] = useState<WatermarkPosition>('all');
+  const [watermarkStyle, setWatermarkStyle] = useState<WatermarkPosition>('center');
 
   const handleCopyLink = (pos: string) => {
     const currentUrl = window.location.href;
@@ -1314,7 +1314,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               </h3>
               {renderCopyButton('2')}
             </div>
-            <div className="w-full aspect-[16/9] md:aspect-[2/1] min-h-[260px] bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 shadow-sm">
+            <div className="w-full aspect-[9/16] lg:aspect-[2/1] min-h-[260px] bg-gray-100 rounded-xl overflow-hidden relative border border-gray-200 shadow-sm">
               {loadingMap ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-[#f8f9fa] z-10">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6600] mb-3"></div>
@@ -1481,7 +1481,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
               <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             {selectedProperty.vr ? (
-              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm h-[420px] sm:h-[500px] md:h-[560px] lg:h-auto lg:aspect-[2/1]">
+              <div className="w-full rounded-2xl overflow-hidden border border-orange-200 shadow-sm h-[420px] sm:h-auto sm:aspect-[9/16] lg:h-auto lg:aspect-[2/1]">
                 <VrViewer 
                   imageUrl={selectedProperty.vrUrl} 
                   propertyName={`${selectedProperty.name}${isLoggedIn && selectedProperty.room ? ' ' + selectedProperty.room + '호' : ''}`}
@@ -1637,61 +1637,63 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                     )}
                     {Array.isArray(d.blog_images) && d.blog_images.length > 0 && (
                       <div className="flex flex-col gap-4 w-full">
-                        {/* Watermark Selector */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-orange-50/70 p-3.5 rounded-xl border border-orange-200">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs sm:text-sm font-extrabold text-gray-800 flex items-center gap-1.5">
-                              <Shield size={16} className="text-[#ff6600]" />
-                              사진 워터마크 추천 스타일 & 위치 선택:
-                            </span>
+                        {/* Watermark Selector ( 관리자 로그인 시에만 노출, 일반 사용자 화면에서는 숨김 ) */}
+                        {isLoggedIn && (
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-orange-50/70 p-3.5 rounded-xl border border-orange-200">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs sm:text-sm font-extrabold text-gray-800 flex items-center gap-1.5">
+                                <Shield size={16} className="text-[#ff6600]" />
+                                사진 워터마크 위치 설정 (관리자 전용):
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => setWatermarkStyle('center')}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                  watermarkStyle === 'center'
+                                    ? 'bg-[#ff6600] text-white shadow-xs'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                }`}
+                              >
+                                🏢 추천1: 중앙
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWatermarkStyle('bottom-right')}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                  watermarkStyle === 'bottom-right'
+                                    ? 'bg-[#ff6600] text-white shadow-xs'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                }`}
+                              >
+                                📞 추천2: 우측하단
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWatermarkStyle('top-left')}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                  watermarkStyle === 'top-left'
+                                    ? 'bg-[#ff6600] text-white shadow-xs'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                }`}
+                              >
+                                ⭐ 추천3: 좌측상단
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWatermarkStyle('all')}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                  watermarkStyle === 'all'
+                                    ? 'bg-[#ff6600] text-white shadow-xs'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                }`}
+                              >
+                                🌟 전체 (통합 3가지)
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() => setWatermarkStyle('all')}
-                              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                watermarkStyle === 'all'
-                                  ? 'bg-[#ff6600] text-white shadow-xs'
-                                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                              }`}
-                            >
-                              🌟 전체 (통합 3가지)
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setWatermarkStyle('center')}
-                              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                watermarkStyle === 'center'
-                                  ? 'bg-[#ff6600] text-white shadow-xs'
-                                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                              }`}
-                            >
-                              🏢 추천1: 중앙
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setWatermarkStyle('bottom-right')}
-                              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                watermarkStyle === 'bottom-right'
-                                  ? 'bg-[#ff6600] text-white shadow-xs'
-                                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                              }`}
-                            >
-                              📞 추천2: 우측하단
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setWatermarkStyle('top-left')}
-                              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                watermarkStyle === 'top-left'
-                                  ? 'bg-[#ff6600] text-white shadow-xs'
-                                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                              }`}
-                            >
-                              ⭐ 추천3: 좌측상단
-                            </button>
-                          </div>
-                        </div>
+                        )}
 
                         <div className="flex flex-col gap-6 w-full">
                           {d.blog_images.map((imgUrl, imgIdx) => (
@@ -1868,6 +1870,44 @@ export default function App() {
         });
       });
     });
+  }, []);
+
+  useEffect(() => {
+    const preventImageContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'IMG' ||
+          target.tagName === 'CANVAS' ||
+          target.closest('img') ||
+          target.closest('canvas') ||
+          target.closest('.no-copy'))
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    const preventImageDrag = (e: DragEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'IMG' ||
+          target.tagName === 'CANVAS' ||
+          target.closest('img') ||
+          target.closest('canvas') ||
+          target.closest('.no-copy'))
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', preventImageContextMenu);
+    document.addEventListener('dragstart', preventImageDrag);
+
+    return () => {
+      document.removeEventListener('contextmenu', preventImageContextMenu);
+      document.removeEventListener('dragstart', preventImageDrag);
+    };
   }, []);
 
   const handleAddProperty = async (newProperty: any) => {
