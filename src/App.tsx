@@ -841,10 +841,10 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
 
             {/* Desktop Table View (lg:block) */}
             <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full text-center text-[13px] border-t-2 border-gray-500 min-w-[900px]">
+              <table className="w-full text-center text-[13px] border-t-2 border-gray-500 min-w-[980px]">
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-50/50">
-                    <th className="py-3 font-medium text-gray-600 w-20">대표사진</th>
+                    <th className="py-3 font-medium text-gray-600 w-36">대표사진</th>
                     <th className="py-3 font-medium text-gray-600 w-16">번호</th>
                     <th className="py-3 font-medium text-gray-600">건물명</th>
                     <th className="py-3 font-medium text-gray-600">주소</th>
@@ -869,7 +869,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                           }}
                         >
                           <td className="py-2 px-2 flex justify-center items-center">
-                            <div className="w-16 h-11 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shadow-xs group-hover:border-orange-400 group-hover:shadow-sm transition-all shrink-0 relative">
+                            <div className="w-32 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shadow-xs group-hover:border-orange-400 group-hover:shadow-md transition-all shrink-0 relative">
                               <img 
                                 src={vrImgUrl} 
                                 alt={`${row.name} 대표사진`}
