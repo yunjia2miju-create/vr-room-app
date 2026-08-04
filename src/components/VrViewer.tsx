@@ -221,33 +221,33 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
       )}
 
       {/* Transparent overlay content */}
-      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center z-10 transition-opacity duration-500 ${hasInteracted || !isLoaded ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="bg-[#0b1f3c] text-white flex flex-col items-center justify-center w-28 h-28 sm:w-32 sm:h-32 rounded-2xl shadow-xl mb-2 opacity-95">
-          <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+      <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 pointer-events-none z-10 transition-opacity duration-500 gap-2 sm:gap-3 ${hasInteracted || !isLoaded ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="bg-[#0b1f3c] text-white flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-xl opacity-95 shrink-0">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <span className="font-bold text-xl tracking-widest">360</span>
+          <span className="font-bold text-lg tracking-widest">360</span>
         </div>
         
         {propertyName && (
-          <div className="bg-[#121c2d]/90 text-white px-6 py-3 rounded-xl text-center shadow-lg border border-white/10 backdrop-blur-md">
-            <div className="text-[10px] text-blue-300 font-bold tracking-wider mb-1">360° VR 투어 지원</div>
-            <div className="font-extrabold text-sm sm:text-base mb-1">{propertyName}</div>
+          <div className="bg-[#121c2d]/90 text-white px-5 py-2.5 rounded-xl text-center shadow-lg border border-white/10 backdrop-blur-md max-w-xs sm:max-w-sm">
+            <div className="text-[10px] text-blue-300 font-bold tracking-wider mb-0.5">360° VR 투어 지원</div>
+            <div className="font-extrabold text-sm sm:text-base mb-0.5">{propertyName}</div>
             {propertyAddr && <div className="text-xs text-gray-300">{propertyAddr}</div>}
           </div>
         )}
-      </div>
 
-      {/* Drag text instruction */}
-      <div className="absolute bottom-16 sm:bottom-28 md:bottom-36 lg:bottom-48 left-1/2 transform -translate-x-1/2 pointer-events-none flex flex-col items-center z-10 text-[#156e52] drop-shadow-md opacity-90 w-full px-2 text-center">
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-          <svg className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 shrink-0" viewBox="0 0 24 24" fill="#d9f2e6" stroke="#0e533d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M14 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"/><path d="M10 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5"/><path d="M11 14h1v1"/><path d="M10 11V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v6.5a2 2 0 0 1-.5.73l-1.38 1.38A2 2 0 0 0 4.7 19.3L8 23.5"/><path d="M20 14.5A2.5 2.5 0 0 1 17.5 17H8"/>
-          </svg>
-          <span className="font-extrabold text-sm sm:text-xl lg:text-2xl tracking-wide font-black whitespace-nowrap">드래그하여 360° VR 투어</span>
+        {/* Drag text instruction */}
+        <div className="flex flex-col items-center text-center px-2 mt-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          <div className="flex items-center justify-center gap-1.5 mb-0.5">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" viewBox="0 0 24 24" fill="#d9f2e6" stroke="#0e533d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M14 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v4"/><path d="M10 4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5"/><path d="M11 14h1v1"/><path d="M10 11V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v6.5a2 2 0 0 1-.5.73l-1.38 1.38A2 2 0 0 0 4.7 19.3L8 23.5"/><path d="M20 14.5A2.5 2.5 0 0 1 17.5 17H8"/>
+            </svg>
+            <span className="font-black text-sm sm:text-base tracking-wide text-emerald-300 whitespace-nowrap">드래그하여 360° VR 투어</span>
+          </div>
+          <span className="font-extrabold text-xs sm:text-sm tracking-wide text-white/90 whitespace-nowrap">태왕공인중개사사무소 054-455-6789</span>
         </div>
-        <span className="font-extrabold text-xs sm:text-lg lg:text-2xl tracking-wide font-black whitespace-nowrap">태왕공인중개사사무소 054-455-6789</span>
       </div>
 
       {/* Navigation Arrows */}
