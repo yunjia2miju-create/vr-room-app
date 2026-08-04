@@ -2,6 +2,20 @@ import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+
+const firebaseConfig = {
+  projectId: "project-3758368870789431339",
+  appId: "1:404949083911:web:d2675e53e56c97e37687a2",
+  apiKey: "AIzaSyChj7RIz9GPmJqOBaHj-WhGisMIApdY_y4",
+  authDomain: "project-3758368870789431339.firebaseapp.com",
+  storageBucket: "project-3758368870789431339.firebasestorage.app",
+  messagingSenderId: "404949083911"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp, "ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a");
 
 async function startServer() {
   const app = express();
@@ -52,20 +66,14 @@ async function startServer() {
   async function getSitemapPropertyIds(): Promise<string[]> {
     const ids = new Set<string>(['1', '2', '3', '4', '5', '6', '7', '8']);
     try {
-      const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/project-3758368870789431339/databases/ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a/documents/properties';
-      const resp = await fetch(firestoreUrl);
-      if (resp.ok) {
-        const data = await resp.json() as any;
-        if (data.documents && Array.isArray(data.documents)) {
-          for (const doc of data.documents) {
-            const docId = doc.name ? doc.name.split('/').pop() : null;
-            if (docId) ids.add(docId);
-            if (doc.fields && doc.fields.id && doc.fields.id.stringValue) {
-              ids.add(doc.fields.id.stringValue);
-            }
-          }
-        }
-      }
+      const querySnapshot = await getDocs(collection(db, 'properties'));
+      querySnapshot.forEach(docSnap => {
+        const docId = docSnap.id;
+        if (docId) ids.add(docId);
+        const data = docSnap.data();
+        if (data.id) ids.add(String(data.id));
+        if (data.listingNumber) ids.add(String(data.listingNumber));
+      });
     } catch (err) {
       console.error('Error fetching properties for sitemap:', err);
     }
@@ -131,29 +139,24 @@ async function startServer() {
     const now = new Date().toUTCString();
 
     try {
-      const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/project-3758368870789431339/databases/ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a/documents/properties';
-      const resp = await fetch(firestoreUrl);
-      if (resp.ok) {
-        const data = await resp.json() as any;
-        if (data.documents && Array.isArray(data.documents) && data.documents.length > 0) {
-          for (const doc of data.documents) {
-            const fields = doc.fields || {};
-            const docId = doc.name ? doc.name.split('/').pop()! : fields.id?.stringValue || '1';
-            const name = fields.name?.stringValue || '매물';
-            const type = fields.type?.stringValue || '원룸/미투/투룸';
-            const addr = fields.addr?.stringValue || '';
-            const deposit = fields.deposit?.stringValue || '0';
-            const rent = fields.rent?.stringValue || '0';
-            const note = fields.note?.stringValue || '';
-            const createTime = doc.createTime ? new Date(doc.createTime).toUTCString() : now;
+      const querySnapshot = await getDocs(collection(db, 'properties'));
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const docId = docSnap.id;
+          const name = data.name || data.buildingName || '매물';
+          const type = data.type || '원룸/미투/투룸';
+          const addr = data.addr || '';
+          const deposit = data.deposit || '0';
+          const rent = data.rent || '0';
+          const note = data.note || '';
 
-            const title = `[태왕] ${name} (${type}) - 보증금 ${deposit} / 월세 ${rent}`;
-            const description = `매물명: ${name} | 위치: ${addr} | 건물유형: ${type} | 보증금: ${deposit}만원 | 월세: ${rent}만원 | 비고: ${note}. 태왕공인중개사사무소 (문의: 054-455-6789 / 010-7590-0111)`;
-            const link = `https://054-455-6789.com/property/${docId}`;
+          const title = `[태왕] ${name} (${type}) - 보증금 ${deposit} / 월세 ${rent}`;
+          const description = `매물명: ${name} | 위치: ${addr} | 건물유형: ${type} | 보증금: ${deposit}만원 | 월세: ${rent}만원 | 비고: ${note}. 태왕공인중개사사무소 (문의: 054-455-6789 / 010-7590-0111)`;
+          const link = `https://054-455-6789.com/property/${docId}`;
 
-            items.push({ id: docId, title, link, description, pubDate: createTime });
-          }
-        }
+          items.push({ id: docId, title, link, description, pubDate: now });
+        });
       }
     } catch (err) {
       console.error('Error fetching properties for RSS:', err);
@@ -218,7 +221,8 @@ async function startServer() {
 
   const handlePropertyOg = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-      const propertyId = req.params.id;
+      const rawId = req.params.id || '';
+      const propertyId = decodeURIComponent(rawId).trim();
       const distPath = path.join(process.cwd(), 'dist');
       const devPath = path.join(process.cwd(), 'index.html');
       
@@ -234,34 +238,35 @@ async function startServer() {
       let matchedProp: any = null;
 
       try {
-        const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/project-3758368870789431339/databases/ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a/documents/properties';
-        const resp = await fetch(firestoreUrl);
-        if (resp.ok) {
-          const data = await resp.json() as any;
-          if (data.documents && Array.isArray(data.documents)) {
-            for (const doc of data.documents) {
-              const fields = doc.fields || {};
-              const docId = doc.name ? doc.name.split('/').pop()! : fields.id?.stringValue || '';
-              const listingNo = fields.listingNumber?.stringValue || (docId.startsWith('TW-') ? docId : `TW-${docId}`);
-              
-              if (docId === propertyId || listingNo === propertyId || `TW-${docId}` === propertyId || propertyId.replace(/^TW-/, '') === docId) {
-                matchedProp = {
-                  id: docId,
-                  listingNumber: listingNo,
-                  name: fields.name?.stringValue || fields.buildingName?.stringValue || '매물',
-                  room: fields.room?.stringValue || '',
-                  addr: fields.addr?.stringValue || '',
-                  type: fields.type?.stringValue || '원룸',
-                  contract: fields.contract?.stringValue || fields.formContract?.stringValue || '월세',
-                  deposit: fields.deposit?.stringValue || '0',
-                  rent: fields.rent?.stringValue || '',
-                  vrUrl: fields.vrUrl?.stringValue || fields.imageUrl?.stringValue || ''
-                };
-                break;
-              }
-            }
+        const querySnapshot = await getDocs(collection(db, 'properties'));
+        querySnapshot.forEach(docSnap => {
+          if (matchedProp) return;
+          const data = docSnap.data();
+          const docId = docSnap.id;
+          const listingNo = data.listingNumber || (docId.startsWith('TW-') ? docId : `TW-${docId}`);
+          
+          if (
+            docId === propertyId || 
+            docId.toLowerCase() === propertyId.toLowerCase() ||
+            listingNo === propertyId || 
+            listingNo.toLowerCase() === propertyId.toLowerCase() ||
+            `TW-${docId}` === propertyId || 
+            propertyId.replace(/^TW-/, '') === docId
+          ) {
+            matchedProp = {
+              id: docId,
+              listingNumber: listingNo,
+              name: data.name || data.buildingName || '매물',
+              room: data.room || '',
+              addr: data.addr || '',
+              type: data.type || '원룸',
+              contract: data.contract || data.formContract || '월세',
+              deposit: data.deposit || '0',
+              rent: data.rent || '',
+              vrUrl: data.vrUrl || data.imageUrl || ''
+            };
           }
-        }
+        });
       } catch (err) {
         console.error('Error fetching property for OG tags:', err);
       }
@@ -287,8 +292,8 @@ async function startServer() {
       const listingNo = matchedProp ? (matchedProp.listingNumber || (matchedProp.id.startsWith('TW-') ? matchedProp.id : `TW-${matchedProp.id}`)) : (propertyId.startsWith('TW-') ? propertyId : `TW-${propertyId}`);
       
       let buildingName = matchedProp ? (matchedProp.name || '매물') : '매물';
-      // 호실 제거 (예: "테스트1 101호" -> "테스트1")
-      buildingName = buildingName.replace(/\s*\d+호?$/, '').trim();
+      // 호실 및 동 제거 (예: "테스트1 101호" -> "테스트1", "신라아파트 101동 202호" -> "신라아파트")
+      buildingName = buildingName.replace(/(\s*\d+동)?\s*\d+호?$/, '').trim();
 
       const addr = matchedProp?.addr || '';
       const type = matchedProp?.type || '원룸';
@@ -299,7 +304,7 @@ async function startServer() {
       const title = `태왕공인중개사사무소 - 매물 ${listingNo}`;
       
       let priceText = `보증금 ${deposit}만`;
-      if (rent && rent !== '0') {
+      if (rent && rent !== '0' && rent !== 0) {
         priceText += `, 월 ${rent}만`;
       }
 
@@ -314,11 +319,37 @@ async function startServer() {
         }
       }
 
-      html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-      html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
-      html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${description}" />`);
-      html = html.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${url}" />`);
-      html = html.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${imageUrl}" />`);
+      html = html.replace(/<title>.*?<\/title>/i, `<title>${title}</title>`);
+
+      if (/<meta\s+property="og:title"/i.test(html)) {
+        html = html.replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:title" content="${title}" />`);
+      } else {
+        html = html.replace('</head>', `<meta property="og:title" content="${title}" />\n</head>`);
+      }
+
+      if (/<meta\s+property="og:description"/i.test(html)) {
+        html = html.replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${description}" />`);
+      } else {
+        html = html.replace('</head>', `<meta property="og:description" content="${description}" />\n</head>`);
+      }
+
+      if (/<meta\s+name="description"/i.test(html)) {
+        html = html.replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}" />`);
+      } else {
+        html = html.replace('</head>', `<meta name="description" content="${description}" />\n</head>`);
+      }
+
+      if (/<meta\s+property="og:url"/i.test(html)) {
+        html = html.replace(/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${url}" />`);
+      } else {
+        html = html.replace('</head>', `<meta property="og:url" content="${url}" />\n</head>`);
+      }
+
+      if (/<meta\s+property="og:image"/i.test(html)) {
+        html = html.replace(/<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${imageUrl}" />`);
+      } else {
+        html = html.replace('</head>', `<meta property="og:image" content="${imageUrl}" />\n</head>`);
+      }
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       return res.send(html);

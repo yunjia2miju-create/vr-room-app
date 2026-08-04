@@ -1248,9 +1248,9 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
     // Update document title and OG meta tags for link previews
     const lNo = selectedProperty.listingNumber || (selectedProperty.id?.toString().startsWith('TW-') ? selectedProperty.id : `TW-${selectedProperty.id}`);
     let bName = selectedProperty.name || '매물';
-    bName = bName.replace(/\s*\d+호?$/, '').trim();
+    bName = bName.replace(/(\s*\d+동)?\s*\d+호?$/, '').trim();
 
-    const priceText = selectedProperty.rent && selectedProperty.rent !== '0' 
+    const priceText = selectedProperty.rent && selectedProperty.rent !== '0' && selectedProperty.rent !== 0
       ? `보증금 ${selectedProperty.deposit}만, 월 ${selectedProperty.rent}만`
       : `보증금 ${selectedProperty.deposit}만`;
 
@@ -1259,11 +1259,29 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
 
     document.title = titleText;
 
-    const metaTitle = document.querySelector('meta[property="og:title"]');
-    if (metaTitle) metaTitle.setAttribute('content', titleText);
+    let metaTitle = document.querySelector('meta[property="og:title"]');
+    if (!metaTitle) {
+      metaTitle = document.createElement('meta');
+      metaTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(metaTitle);
+    }
+    metaTitle.setAttribute('content', titleText);
 
-    const metaDesc = document.querySelector('meta[property="og:description"]');
-    if (metaDesc) metaDesc.setAttribute('content', descText);
+    let metaDesc = document.querySelector('meta[property="og:description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('property', 'og:description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', descText);
+
+    let standardDesc = document.querySelector('meta[name="description"]');
+    if (!standardDesc) {
+      standardDesc = document.createElement('meta');
+      standardDesc.setAttribute('name', 'description');
+      document.head.appendChild(standardDesc);
+    }
+    standardDesc.setAttribute('content', descText);
 
     return () => clearTimeout(timer);
   }, [selectedProperty]);
