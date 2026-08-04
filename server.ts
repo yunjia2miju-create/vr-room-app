@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
+import fs from 'fs';
 
 async function startServer() {
   const app = express();
@@ -215,6 +216,120 @@ async function startServer() {
     res.send(`User-agent: *\nAllow: /\n\nSitemap: https://054-455-6789.com/sitemap.xml\n`);
   });
 
+  const handlePropertyOg = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const propertyId = req.params.id;
+      const distPath = path.join(process.cwd(), 'dist');
+      const devPath = path.join(process.cwd(), 'index.html');
+      
+      let html = '';
+      if (fs.existsSync(path.join(distPath, 'index.html'))) {
+        html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
+      } else if (fs.existsSync(devPath)) {
+        html = fs.readFileSync(devPath, 'utf-8');
+      } else {
+        return next();
+      }
+
+      let matchedProp: any = null;
+
+      try {
+        const firestoreUrl = 'https://firestore.googleapis.com/v1/projects/project-3758368870789431339/databases/ai-studio-realestatedashbo-3f2b1139-2496-4de2-87c9-def79bc9970a/documents/properties';
+        const resp = await fetch(firestoreUrl);
+        if (resp.ok) {
+          const data = await resp.json() as any;
+          if (data.documents && Array.isArray(data.documents)) {
+            for (const doc of data.documents) {
+              const fields = doc.fields || {};
+              const docId = doc.name ? doc.name.split('/').pop()! : fields.id?.stringValue || '';
+              const listingNo = fields.listingNumber?.stringValue || (docId.startsWith('TW-') ? docId : `TW-${docId}`);
+              
+              if (docId === propertyId || listingNo === propertyId || `TW-${docId}` === propertyId || propertyId.replace(/^TW-/, '') === docId) {
+                matchedProp = {
+                  id: docId,
+                  listingNumber: listingNo,
+                  name: fields.name?.stringValue || fields.buildingName?.stringValue || '매물',
+                  room: fields.room?.stringValue || '',
+                  addr: fields.addr?.stringValue || '',
+                  type: fields.type?.stringValue || '원룸',
+                  contract: fields.contract?.stringValue || fields.formContract?.stringValue || '월세',
+                  deposit: fields.deposit?.stringValue || '0',
+                  rent: fields.rent?.stringValue || '',
+                  vrUrl: fields.vrUrl?.stringValue || fields.imageUrl?.stringValue || ''
+                };
+                break;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching property for OG tags:', err);
+      }
+
+      if (!matchedProp) {
+        const defaultMatch = DEFAULT_PROPERTIES.find(p => p.id === propertyId || `TW-${p.id}` === propertyId);
+        if (defaultMatch) {
+          matchedProp = {
+            id: defaultMatch.id,
+            listingNumber: `TW-${defaultMatch.id}`,
+            name: defaultMatch.name,
+            room: defaultMatch.room,
+            addr: defaultMatch.addr,
+            type: defaultMatch.type,
+            contract: '월세',
+            deposit: defaultMatch.deposit,
+            rent: defaultMatch.rent,
+            vrUrl: ''
+          };
+        }
+      }
+
+      const listingNo = matchedProp ? (matchedProp.listingNumber || (matchedProp.id.startsWith('TW-') ? matchedProp.id : `TW-${matchedProp.id}`)) : (propertyId.startsWith('TW-') ? propertyId : `TW-${propertyId}`);
+      
+      let buildingName = matchedProp ? (matchedProp.name || '매물') : '매물';
+      // 호실 제거 (예: "테스트1 101호" -> "테스트1")
+      buildingName = buildingName.replace(/\s*\d+호?$/, '').trim();
+
+      const addr = matchedProp?.addr || '';
+      const type = matchedProp?.type || '원룸';
+      const contract = matchedProp?.contract || '월세';
+      const deposit = matchedProp?.deposit || '0';
+      const rent = matchedProp?.rent || '';
+
+      const title = `태왕공인중개사사무소 - 매물 ${listingNo}`;
+      
+      let priceText = `보증금 ${deposit}만`;
+      if (rent && rent !== '0') {
+        priceText += `, 월 ${rent}만`;
+      }
+
+      const description = `[건물명-${buildingName}] ${addr} / ${type} / ${contract} / ${priceText}`;
+      const url = `https://054-455-6789.com/property/${propertyId}`;
+
+      let imageUrl = 'https://054-455-6789.com/thumbnail.jpg';
+      if (matchedProp?.vrUrl) {
+        const firstImg = matchedProp.vrUrl.split(/(?=https?:\/\/)/)[0]?.trim();
+        if (firstImg && firstImg.startsWith('http')) {
+          imageUrl = firstImg;
+        }
+      }
+
+      html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+      html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
+      html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${description}" />`);
+      html = html.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${url}" />`);
+      html = html.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${imageUrl}" />`);
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.send(html);
+    } catch (error) {
+      console.error('Property OG handler error:', error);
+      next();
+    }
+  };
+
+  app.get('/property/:id', handlePropertyOg);
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -223,24 +338,10 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    const fs = require('fs');
     app.use(express.static(distPath, { index: false }));
     app.get('*', (req, res) => {
       try {
         let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
-        
-        if (req.path.startsWith('/property/')) {
-          const propertyId = req.path.split('/')[2];
-          const title = `태왕공인중개사사무소 - 매물 TW-${propertyId}`;
-          const description = `매물번호 TW-${propertyId} 상세정보와 360 VR 투어를 확인해보세요.`;
-          const url = `http://054-455-6789.com${req.path}`;
-          
-          html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-          html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
-          html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${description}" />`);
-          html = html.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${url}" />`);
-        }
-        
         res.send(html);
       } catch (err) {
         res.sendFile(path.join(distPath, 'index.html'));

@@ -1230,6 +1230,26 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
       setLoadingMap(false);
     }, 400);
 
+    // Update document title and OG meta tags for link previews
+    const lNo = selectedProperty.listingNumber || (selectedProperty.id?.toString().startsWith('TW-') ? selectedProperty.id : `TW-${selectedProperty.id}`);
+    let bName = selectedProperty.name || '매물';
+    bName = bName.replace(/\s*\d+호?$/, '').trim();
+
+    const priceText = selectedProperty.rent && selectedProperty.rent !== '0' 
+      ? `보증금 ${selectedProperty.deposit}만, 월 ${selectedProperty.rent}만`
+      : `보증금 ${selectedProperty.deposit}만`;
+
+    const titleText = `태왕공인중개사사무소 - 매물 ${lNo}`;
+    const descText = `[건물명-${bName}] ${selectedProperty.addr || ''} / ${selectedProperty.type || '원룸'} / ${selectedProperty.contract || '월세'} / ${priceText}`;
+
+    document.title = titleText;
+
+    const metaTitle = document.querySelector('meta[property="og:title"]');
+    if (metaTitle) metaTitle.setAttribute('content', titleText);
+
+    const metaDesc = document.querySelector('meta[property="og:description"]');
+    if (metaDesc) metaDesc.setAttribute('content', descText);
+
     return () => clearTimeout(timer);
   }, [selectedProperty]);
 
