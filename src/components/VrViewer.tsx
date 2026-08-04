@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Viewer } from '@photo-sphere-viewer/core';
 import '@photo-sphere-viewer/core/index.css';
+import { TaewangLogoIcon } from './WatermarkOverlay';
 
 interface VrViewerProps {
   imageUrl?: string;
@@ -220,23 +221,17 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         </div>
       )}
 
-      {/* Center watermark icon overlay (Only icon, no background box, no text) */}
-      <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 pointer-events-none z-10 transition-opacity duration-500 gap-2 ${hasInteracted || !isLoaded ? 'opacity-0' : 'opacity-100'}`}>
-        {/* 태왕 로고 아이콘만 단독으로 표시 */}
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#ff6600] flex items-center justify-center shadow-2xl shrink-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-        </div>
-
-        {propertyName && (
-          <div className="text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-            <div className="font-extrabold text-sm sm:text-base text-orange-200">{propertyName}</div>
-            {propertyAddr && <div className="text-xs text-gray-200 font-medium">{propertyAddr}</div>}
+      {/* Fixed Center Watermark (50% opacity building icon + "360 VR 실매물" text) */}
+      {isLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 p-4">
+          <div className="flex flex-col items-center justify-center opacity-50 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] select-none" style={{ opacity: 0.5 }}>
+            <TaewangLogoIcon className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0" />
+            <span className="text-white font-black text-sm sm:text-lg md:text-xl tracking-wider whitespace-nowrap mt-1 drop-shadow-md">
+              360 VR 실매물
+            </span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Drag text instruction & office info (Always visible once loaded) */}
       {isLoaded && (

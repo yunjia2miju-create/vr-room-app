@@ -82,11 +82,14 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 
     const renderCompactCenter = () => (
       <div 
-        className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1"
+        className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none p-1"
       >
         {showIcon && (
-          <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] opacity-20" style={{ opacity: 0.2 }}>
+          <div className="flex flex-col items-center justify-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]" style={{ opacity: 0.5 }}>
             <TaewangLogoIcon className="w-5 h-5 shrink-0" />
+            <span className="text-white font-extrabold text-[8px] tracking-tight whitespace-nowrap drop-shadow-xs mt-0.5">
+              {customCenterText || "360 VR 투어"}
+            </span>
           </div>
         )}
       </div>
@@ -124,11 +127,14 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 
   const renderCenter = () => (
     <div 
-      className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-2 sm:p-4 md:p-6"
+      className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none p-2 sm:p-4 md:p-6"
     >
       {showIcon && (
-        <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)] opacity-20" style={{ opacity: 0.2 }}>
-          <TaewangLogoIcon className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 shrink-0" />
+        <div className="flex flex-col items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]" style={{ opacity: 0.5 }}>
+          <TaewangLogoIcon className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0" />
+          <span className="text-white font-extrabold text-xs sm:text-base md:text-xl tracking-wider whitespace-nowrap drop-shadow-md mt-1 sm:mt-2">
+            {customCenterText || "360 VR 투어"}
+          </span>
         </div>
       )}
     </div>

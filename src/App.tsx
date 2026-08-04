@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import AdminPage from './components/AdminPage';
 import VrViewer from './components/VrViewer';
-import WatermarkOverlay, { WatermarkPosition } from './components/WatermarkOverlay';
+import WatermarkOverlay, { WatermarkPosition, TaewangLogoIcon } from './components/WatermarkOverlay';
 import { auth } from './firebase';
 import { 
   Building2, 
@@ -878,6 +878,15 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                                   (e.target as HTMLImageElement).src = '/sphere.jpg';
                                 }}
                               />
+                              {/* PC 대표사진 워터마크 (50% 투명도 주황 건물 로고 아이콘 + 360 VR 투어) */}
+                              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-black/15">
+                                <div className="flex flex-col items-center justify-center opacity-50 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                                  <TaewangLogoIcon className="w-6 h-6 shrink-0" />
+                                  <span className="text-white font-extrabold text-[10px] tracking-tight whitespace-nowrap drop-shadow-sm mt-0.5">
+                                    360 VR 투어
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </td>
                           <td className="py-4 text-gray-400">TW-{row.id}</td>
