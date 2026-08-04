@@ -844,6 +844,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
               <table className="w-full text-center text-[13px] border-t-2 border-gray-500 min-w-[900px]">
                 <thead>
                   <tr className="border-b border-gray-300 bg-gray-50/50">
+                    <th className="py-3 font-medium text-gray-600 w-20">대표사진</th>
                     <th className="py-3 font-medium text-gray-600 w-16">번호</th>
                     <th className="py-3 font-medium text-gray-600">건물명</th>
                     <th className="py-3 font-medium text-gray-600">주소</th>
@@ -856,40 +857,56 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 </thead>
                 <tbody>
                   {pagedProperties.length > 0 ? (
-                    pagedProperties.map((row, idx) => (
-                      <tr 
-                        key={idx} 
-                        className="border-b border-gray-200 hover:bg-orange-50/30 transition-colors cursor-pointer" 
-                        onClick={() => {
-                          navigate('/property/' + row.id);
-                        }}
-                      >
-                        <td className="py-4 text-gray-400">TW-{row.id}</td>
-                        <td className="py-4 text-gray-900 font-bold">{row.name}</td>
-                        <td className="py-4 text-gray-700 text-left px-2">{formatAddress(row.addr, isLoggedIn)}</td>
-                        <td className="py-4 text-gray-700">
-                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">{row.type}</span>
-                        </td>
-                        <td className="py-4 text-gray-900 font-semibold whitespace-pre-line">{row.deposit}</td>
-                        <td className="py-4 text-orange-600 font-bold whitespace-pre-line">{row.rent}</td>
-                        <td className="py-4 text-gray-500 text-left text-[12px] max-w-xs truncate" title={row.note}>{row.note}</td>
-                        <td className="py-4" onClick={(e) => e.stopPropagation()}>
-                          {row.vr ? (
-                            <Link 
-                              to={`/property/${row.id}`}
-                              className="bg-[#ff6600] text-white text-xs font-bold px-3 py-1.5 rounded shadow-sm hover:bg-[#e65c00] transition-colors whitespace-nowrap inline-block animate-pulse"
-                            >
-                              VR 보기
-                            </Link>
-                          ) : (
-                            <span className="text-gray-400 text-xs">준비중</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                    pagedProperties.map((row, idx) => {
+                      const vrImgUrl = row.vrUrl ? (row.vrUrl.split(/(?=https?:\/\/)/)[0]?.trim() || '/sphere.jpg') : '/sphere.jpg';
+
+                      return (
+                        <tr 
+                          key={idx} 
+                          className="group border-b border-gray-200 hover:bg-orange-50/30 transition-colors cursor-pointer" 
+                          onClick={() => {
+                            navigate('/property/' + row.id);
+                          }}
+                        >
+                          <td className="py-2 px-2 flex justify-center items-center">
+                            <div className="w-16 h-11 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shadow-xs group-hover:border-orange-400 group-hover:shadow-sm transition-all shrink-0 relative">
+                              <img 
+                                src={vrImgUrl} 
+                                alt={`${row.name} 대표사진`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/sphere.jpg';
+                                }}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-4 text-gray-400">TW-{row.id}</td>
+                          <td className="py-4 text-gray-900 font-bold">{row.name}</td>
+                          <td className="py-4 text-gray-700 text-left px-2">{formatAddress(row.addr, isLoggedIn)}</td>
+                          <td className="py-4 text-gray-700">
+                            <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded font-medium">{row.type}</span>
+                          </td>
+                          <td className="py-4 text-gray-900 font-semibold whitespace-pre-line">{row.deposit}</td>
+                          <td className="py-4 text-orange-600 font-bold whitespace-pre-line">{row.rent}</td>
+                          <td className="py-4 text-gray-500 text-left text-[12px] max-w-xs truncate" title={row.note}>{row.note}</td>
+                          <td className="py-4" onClick={(e) => e.stopPropagation()}>
+                            {row.vr ? (
+                              <Link 
+                                to={`/property/${row.id}`}
+                                className="bg-[#ff6600] text-white text-xs font-bold px-3 py-1.5 rounded shadow-sm hover:bg-[#e65c00] transition-colors whitespace-nowrap inline-block animate-pulse"
+                              >
+                                VR 보기
+                              </Link>
+                            ) : (
+                              <span className="text-gray-400 text-xs">준비중</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan={8} className="py-12 text-gray-400 text-center text-sm font-medium">
+                      <td colSpan={9} className="py-12 text-gray-400 text-center text-sm font-medium">
                         조건에 일치하는 매물이 없습니다.<br />검색 조건을 변경하거나 필터를 초기화해 주세요.
                       </td>
                     </tr>
@@ -1638,12 +1655,12 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">2. 집주인</span><span className="text-gray-900 break-words flex-1">{landlordConfirm}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">3. 확인매물</span><span className="text-gray-900 break-words flex-1">{verifiedStatus}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">4. 일반원룸</span><span className="text-gray-900 break-words flex-1">{roomType}</span></div>
-                  <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">5. 거래 조건</span><span className="text-gray-900 break-words flex-1">{rentDetail}</span></div>
+                  <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">5. 거래 조건</span><span className="text-[#ff6600] font-bold break-words flex-1">{rentDetail}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">6. 매물특징</span><span className="text-gray-900 break-words flex-1">{features}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">7. 공급/전용면적</span><span className="text-gray-900 break-words flex-1">{area}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">8. 해당층/총층</span><span className="text-gray-900 break-words flex-1">{floor}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">9. 방수/욕실수</span><span className="text-gray-900 break-words flex-1">{roomsBaths}</span></div>
-                  <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">10. 관리비</span><span className="text-gray-900 break-words flex-1">{maintenanceFee}</span></div>
+                  <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">10. 관리비</span><span className="text-[#ff6600] font-bold break-words flex-1">{maintenanceFee}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">11. 입주가능일</span><span className="text-gray-900 break-words flex-1">{moveInDate}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">12. 사용승인일</span><span className="text-gray-900 break-words flex-1">{approvalDate}</span></div>
                   <div className="flex border-b border-gray-200 pb-2"><span className="w-24 sm:w-32 text-gray-500 shrink-0">13. 방향</span><span className="text-gray-900 break-words flex-1">{direction}</span></div>
