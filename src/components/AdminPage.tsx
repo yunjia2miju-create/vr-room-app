@@ -2102,60 +2102,125 @@ export default function AdminPage({
                       {showAdminWatermark && (
                         <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
                           <div className="text-xs font-extrabold text-gray-700 flex items-center gap-1">
-                            💡 전문가 추천 3가지 워터마크 위치 및 문구 옵션:
+                            💡 전문가 추천 워터마크 위치 (다중 선택 가능 - 1개, 2개, 3개 자유 조합):
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setAdminWatermarkPos('all')}
-                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                                adminWatermarkPos === 'all'
-                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
-                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
-                              }`}
-                            >
-                              <div className="text-xs font-black text-[#ff6600] mb-0.5">🌟 전체 조합 (추천 1+2+3)</div>
-                              <div className="text-[11px] text-gray-600 font-medium">3개 위치 정밀 배치하여 완벽 도용방지</div>
-                            </button>
+                            {(() => {
+                              const isCenterActive = adminWatermarkPos === 'all' || adminWatermarkPos.split(',').map(s => s.trim()).includes('center');
+                              const isBottomRightActive = adminWatermarkPos === 'all' || adminWatermarkPos.split(',').map(s => s.trim()).includes('bottom-right');
+                              const isTopLeftActive = adminWatermarkPos === 'all' || adminWatermarkPos.split(',').map(s => s.trim()).includes('top-left');
+                              const isAllActive = isCenterActive && isBottomRightActive && isTopLeftActive;
 
-                            <button
-                              type="button"
-                              onClick={() => setAdminWatermarkPos('center')}
-                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                                adminWatermarkPos === 'center'
-                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
-                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
-                              }`}
-                            >
-                              <div className="text-xs font-black text-[#ff6600] mb-0.5">🏢 추천 1: 중앙 수평 마크 (대형)</div>
-                              <div className="text-[11px] text-gray-600 font-medium">태왕공인중개사사무소 360 VR 실매물 (10% 반투명)</div>
-                            </button>
+                              const togglePos = (target: 'center' | 'bottom-right' | 'top-left' | 'all') => {
+                                if (target === 'all') {
+                                  setAdminWatermarkPos(isAllActive ? '' : 'all');
+                                  return;
+                                }
 
-                            <button
-                              type="button"
-                              onClick={() => setAdminWatermarkPos('bottom-right')}
-                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                                adminWatermarkPos === 'bottom-right'
-                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
-                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
-                              }`}
-                            >
-                              <div className="text-xs font-black text-[#ff6600] mb-0.5">📞 추천 2: 우측하단 전화문의</div>
-                              <div className="text-[11px] text-gray-600 font-medium">📞 상담문의: 054-455-6789 (태왕공인)</div>
-                            </button>
+                                let activeArr: string[] = [];
+                                if (adminWatermarkPos === 'all') {
+                                  activeArr = ['center', 'bottom-right', 'top-left'];
+                                } else {
+                                  activeArr = adminWatermarkPos.split(',').map(s => s.trim()).filter(Boolean);
+                                }
 
-                            <button
-                              type="button"
-                              onClick={() => setAdminWatermarkPos('top-left')}
-                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                                adminWatermarkPos === 'top-left'
-                                  ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
-                                  : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
-                              }`}
-                            >
-                              <div className="text-xs font-black text-[#ff6600] mb-0.5">⭐ 추천 3: 좌측상단 실매물 보증</div>
-                              <div className="text-[11px] text-gray-600 font-medium">⭐ [태왕 360 VR] 100% 현장 검증</div>
-                            </button>
+                                if (activeArr.includes(target)) {
+                                  activeArr = activeArr.filter(p => p !== target);
+                                } else {
+                                  activeArr.push(target);
+                                }
+
+                                if (activeArr.length === 3) {
+                                  setAdminWatermarkPos('all');
+                                } else {
+                                  setAdminWatermarkPos(activeArr.join(','));
+                                }
+                              };
+
+                              return (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => togglePos('all')}
+                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2 ${
+                                      isAllActive
+                                        ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                        : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                                    }`}
+                                  >
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                      isAllActive ? 'bg-[#ff6600] border-[#ff6600] text-white' : 'border-gray-300 bg-white'
+                                    }`}>
+                                      {isAllActive && <Check size={12} strokeWidth={3} />}
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-black text-[#ff6600] mb-0.5">🌟 전체 조합 (추천 1+2+3)</div>
+                                      <div className="text-[11px] text-gray-600 font-medium">3개 위치 정밀 배치하여 완벽 도용방지</div>
+                                    </div>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => togglePos('center')}
+                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2 ${
+                                      isCenterActive
+                                        ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                        : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                                    }`}
+                                  >
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                      isCenterActive ? 'bg-[#ff6600] border-[#ff6600] text-white' : 'border-gray-300 bg-white'
+                                    }`}>
+                                      {isCenterActive && <Check size={12} strokeWidth={3} />}
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-black text-[#ff6600] mb-0.5">🏢 추천 1: 중앙 워터마크 아이콘</div>
+                                      <div className="text-[11px] text-gray-600 font-medium">태왕공인중개사사무소 로고 아이콘 마크</div>
+                                    </div>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => togglePos('bottom-right')}
+                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2 ${
+                                      isBottomRightActive
+                                        ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                        : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                                    }`}
+                                  >
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                      isBottomRightActive ? 'bg-[#ff6600] border-[#ff6600] text-white' : 'border-gray-300 bg-white'
+                                    }`}>
+                                      {isBottomRightActive && <Check size={12} strokeWidth={3} />}
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-black text-[#ff6600] mb-0.5">📞 추천 2: 우측하단 전화문의</div>
+                                      <div className="text-[11px] text-gray-600 font-medium">📞 상담문의: 054-455-6789 (태왕공인)</div>
+                                    </div>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => togglePos('top-left')}
+                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2 ${
+                                      isTopLeftActive
+                                        ? 'border-[#ff6600] bg-orange-50/80 ring-2 ring-[#ff6600]/30 font-bold text-gray-900'
+                                        : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-gray-50/50'
+                                    }`}
+                                  >
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                      isTopLeftActive ? 'bg-[#ff6600] border-[#ff6600] text-white' : 'border-gray-300 bg-white'
+                                    }`}>
+                                      {isTopLeftActive && <Check size={12} strokeWidth={3} />}
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-black text-[#ff6600] mb-0.5">⭐ 추천 3: 좌측상단 실매물 보증</div>
+                                      <div className="text-[11px] text-gray-600 font-medium">⭐ [태왕 360 VR] 100% 현장 검증</div>
+                                    </div>
+                                  </button>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                       )}

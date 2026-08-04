@@ -1,7 +1,8 @@
 import React from 'react';
 import { Star, Phone, ShieldCheck } from 'lucide-react';
 
-export type WatermarkPosition = 'center' | 'bottom-right' | 'top-left' | 'all';
+export type WatermarkPositionItem = 'center' | 'bottom-right' | 'top-left';
+export type WatermarkPosition = WatermarkPositionItem | 'all' | string;
 
 // Custom Orange Building Icon matching the uploaded logo
 export const TaewangLogoIcon: React.FC<{ size?: number; className?: string }> = ({ size = 36, className = '' }) => (
@@ -56,6 +57,18 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 }) => {
   const styleOpacity = { opacity };
 
+  const hasPos = (posItem: 'center' | 'bottom-right' | 'top-left'): boolean => {
+    if (!position) return false;
+    if (position === 'all') return true;
+    if (Array.isArray(position)) return position.includes(posItem);
+    if (typeof position === 'string') {
+      const parts = position.split(',').map(s => s.trim()).filter(Boolean);
+      if (parts.includes('all')) return true;
+      return parts.includes(posItem);
+    }
+    return false;
+  };
+
   if (compact) {
     const renderCompactTopLeft = () => (
       <div 
@@ -72,14 +85,11 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
         style={styleOpacity}
         className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1"
       >
-        <div className="bg-black/45 text-white border border-white/30 backdrop-blur-2xs rounded-md px-2 py-0.5 text-[10px] font-black tracking-tight flex items-center gap-1 shadow-xs select-none text-center max-w-[92%] whitespace-nowrap overflow-hidden text-ellipsis">
-          {showIcon && (
-            <TaewangLogoIcon className="w-3.5 h-3.5 shrink-0 opacity-95" />
-          )}
-          <span className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] text-white truncate">
-            {customCenterText || `${officeName} 360 VR`}
-          </span>
-        </div>
+        {showIcon && (
+          <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+            <TaewangLogoIcon className="w-5 h-5 shrink-0 opacity-95" />
+          </div>
+        )}
       </div>
     );
 
@@ -95,9 +105,9 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-inherit">
-        {(position === 'top-left' || position === 'all') && renderCompactTopLeft()}
-        {(position === 'center' || position === 'all') && renderCompactCenter()}
-        {(position === 'bottom-right' || position === 'all') && renderCompactBottomRight()}
+        {hasPos('top-left') && renderCompactTopLeft()}
+        {hasPos('center') && renderCompactCenter()}
+        {hasPos('bottom-right') && renderCompactBottomRight()}
       </div>
     );
   }
@@ -118,14 +128,11 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
       style={styleOpacity}
       className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-2 sm:p-4 md:p-6"
     >
-      <div className="bg-black/35 text-white border border-white/35 backdrop-blur-xs rounded-xl sm:rounded-2xl md:rounded-3xl px-3 py-1.5 sm:px-5 sm:py-2.5 md:px-8 md:py-4 text-xs sm:text-base md:text-xl lg:text-2xl font-black tracking-tight flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 shadow-xl select-none text-center max-w-[92%] whitespace-nowrap overflow-hidden text-ellipsis">
-        {showIcon && (
-          <TaewangLogoIcon className="w-4 h-4 sm:w-6 sm:h-6 md:w-9 md:h-9 shrink-0 opacity-100" />
-        )}
-        <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] text-white truncate">
-          {customCenterText || `${officeName} 360 VR 실매물`}
-        </span>
-      </div>
+      {showIcon && (
+        <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
+          <TaewangLogoIcon className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 shrink-0 opacity-100" />
+        </div>
+      )}
     </div>
   );
 
@@ -141,9 +148,9 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-inherit">
-      {(position === 'top-left' || position === 'all') && renderTopLeft()}
-      {(position === 'center' || position === 'all') && renderCenter()}
-      {(position === 'bottom-right' || position === 'all') && renderBottomRight()}
+      {hasPos('top-left') && renderTopLeft()}
+      {hasPos('center') && renderCenter()}
+      {hasPos('bottom-right') && renderBottomRight()}
     </div>
   );
 };

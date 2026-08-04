@@ -669,7 +669,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 <div className="p-1.5 bg-orange-50 text-[#ff6600] rounded-lg">
                   <FileText size={18} className="stroke-[2.5]" />
                 </div>
-                <h3 className="font-bold text-base md:text-lg text-gray-900">태왕공인중개사 & 공지사항</h3>
+                <h3 className="font-bold text-base md:text-lg text-gray-900">태왕공인중개사사무소 알림 & 공지사항</h3>
               </div>
               <span className="text-xs text-gray-400 font-medium hidden sm:inline">최신 공지 및 임대인/임차인 유용한 소식을 확인하세요</span>
             </div>
@@ -1522,7 +1522,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
           <div className="p-6 md:p-8 border-b border-gray-100 bg-gray-50/30">
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-6 flex items-center flex-wrap gap-2">
               <span className="w-1.5 h-6 bg-[#ff6600] rounded-full"></span>
-              <span>5. 태왕 알림 & 안심 공지사항</span>
+              <span>5. 태왕공인중개사사무소 알림 & 공지사항</span>
               <span className="text-gray-500 font-normal text-sm sm:text-base">(매물번호 {listingNo})</span>
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1663,54 +1663,114 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                             <div className="flex items-center gap-2">
                               <span className="text-xs sm:text-sm font-extrabold text-gray-800 flex items-center gap-1.5">
                                 <Shield size={16} className="text-[#ff6600]" />
-                                사진 워터마크 위치 설정 (관리자 전용):
+                                사진 워터마크 위치 설정 (다중 선택 가능):
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => setWatermarkStyle('center')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                  watermarkStyle === 'center'
-                                    ? 'bg-[#ff6600] text-white shadow-xs'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                }`}
-                              >
-                                🏢 추천1: 중앙
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setWatermarkStyle('bottom-right')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                  watermarkStyle === 'bottom-right'
-                                    ? 'bg-[#ff6600] text-white shadow-xs'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                }`}
-                              >
-                                📞 추천2: 우측하단
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setWatermarkStyle('top-left')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                  watermarkStyle === 'top-left'
-                                    ? 'bg-[#ff6600] text-white shadow-xs'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                }`}
-                              >
-                                ⭐ 추천3: 좌측상단
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setWatermarkStyle('all')}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                  watermarkStyle === 'all'
-                                    ? 'bg-[#ff6600] text-white shadow-xs'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                }`}
-                              >
-                                🌟 전체 (통합 3가지)
-                              </button>
+                              {(() => {
+                                const isCenterActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('center');
+                                const isBottomRightActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('bottom-right');
+                                const isTopLeftActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('top-left');
+                                const isAllActive = isCenterActive && isBottomRightActive && isTopLeftActive;
+
+                                const toggleStyle = (target: 'center' | 'bottom-right' | 'top-left' | 'all') => {
+                                  if (target === 'all') {
+                                    setWatermarkStyle(isAllActive ? '' : 'all');
+                                    return;
+                                  }
+
+                                  let activeArr: string[] = [];
+                                  if (watermarkStyle === 'all') {
+                                    activeArr = ['center', 'bottom-right', 'top-left'];
+                                  } else {
+                                    activeArr = watermarkStyle.split(',').map(s => s.trim()).filter(Boolean);
+                                  }
+
+                                  if (activeArr.includes(target)) {
+                                    activeArr = activeArr.filter(p => p !== target);
+                                  } else {
+                                    activeArr.push(target);
+                                  }
+
+                                  if (activeArr.length === 3) {
+                                    setWatermarkStyle('all');
+                                  } else {
+                                    setWatermarkStyle(activeArr.join(','));
+                                  }
+                                };
+
+                                return (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleStyle('all')}
+                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                        isAllActive
+                                          ? 'bg-[#ff6600] text-white shadow-xs'
+                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                      }`}
+                                    >
+                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                        isAllActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                      }`}>
+                                        {isAllActive && <Check size={10} strokeWidth={3} />}
+                                      </div>
+                                      🌟 전체 (통합 3가지)
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleStyle('center')}
+                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                        isCenterActive
+                                          ? 'bg-[#ff6600] text-white shadow-xs'
+                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                      }`}
+                                    >
+                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                        isCenterActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                      }`}>
+                                        {isCenterActive && <Check size={10} strokeWidth={3} />}
+                                      </div>
+                                      🏢 추천1: 중앙
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleStyle('bottom-right')}
+                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                        isBottomRightActive
+                                          ? 'bg-[#ff6600] text-white shadow-xs'
+                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                      }`}
+                                    >
+                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                        isBottomRightActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                      }`}>
+                                        {isBottomRightActive && <Check size={10} strokeWidth={3} />}
+                                      </div>
+                                      📞 추천2: 우측하단
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleStyle('top-left')}
+                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                        isTopLeftActive
+                                          ? 'bg-[#ff6600] text-white shadow-xs'
+                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                      }`}
+                                    >
+                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                        isTopLeftActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                      }`}>
+                                        {isTopLeftActive && <Check size={10} strokeWidth={3} />}
+                                      </div>
+                                      ⭐ 추천3: 좌측상단
+                                    </button>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
