@@ -17,16 +17,20 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Extract URLs from string (handle missing newlines by splitting on http)
-  const urls = imageUrl 
+  const rawUrls = imageUrl 
     ? imageUrl
         .split(/(?=https?:\/\/)/) // Split right before http:// or https://
         .map(u => u.trim())
         .filter(u => u.length > 0)
     : ['/sphere.jpg'];
     
-  if (urls.length === 0) {
-    urls.push('/sphere.jpg');
+  if (rawUrls.length === 0) {
+    rawUrls.push('/sphere.jpg');
   }
+
+  // 1번 사진이 일반 썸네일/카카오톡 링크 공유용 사진일 경우 (전체 사진 수가 2장 이상일 때), 
+  // 360 VR 뷰어에서는 1번 사진을 건너뛰고 2번째 사진부터 VR 뷰어로 보여줍니다.
+  const urls = rawUrls.length > 1 ? rawUrls.slice(1) : rawUrls;
 
   // Preload next and previous images for faster navigation
   useEffect(() => {

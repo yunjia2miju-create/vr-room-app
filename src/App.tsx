@@ -902,7 +902,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
             <div className="lg:hidden flex flex-col gap-4">
               {pagedProperties.length > 0 ? (
                 pagedProperties.map((row, idx) => {
-                  const vrImgUrl = row.vrUrl ? row.vrUrl.trim().split('\n')[0].trim() : '/sphere.jpg';
+                  const vrImgUrl = row.vrUrl ? (row.vrUrl.split(/(?=https?:\/\/)/)[0]?.trim() || '/sphere.jpg') : '/sphere.jpg';
                   const listingIdText = row.listingNumber || (row.id?.toString().startsWith('TW-') ? row.id : `TW-${row.id}`);
 
                   return (
