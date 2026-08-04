@@ -73,7 +73,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
     const renderCompactTopLeft = () => (
       <div 
         style={styleOpacity} 
-        className="absolute top-1 left-1 z-20 bg-gradient-to-r from-[#ff6600]/90 to-[#e65c00]/90 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 border border-white/20 backdrop-blur-2xs select-none max-w-[88%] truncate pointer-events-none"
+        className="absolute top-1 left-1 z-20 text-white text-[9px] font-extrabold px-1 py-0.5 flex items-center gap-1 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.95)] select-none max-w-[88%] truncate pointer-events-none"
       >
         {showIcon && <Star size={10} fill="currentColor" className="text-yellow-300 shrink-0" />}
         <span className="truncate">{customTopText || `⭐ [태왕 360 VR] 현장검증`}</span>
@@ -82,12 +82,11 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 
     const renderCompactCenter = () => (
       <div 
-        style={styleOpacity}
         className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1"
       >
         {showIcon && (
-          <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
-            <TaewangLogoIcon className="w-5 h-5 shrink-0 opacity-95" />
+          <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] opacity-10" style={{ opacity: 0.1 }}>
+            <TaewangLogoIcon className="w-5 h-5 shrink-0" />
           </div>
         )}
       </div>
@@ -96,7 +95,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
     const renderCompactBottomRight = () => (
       <div 
         style={styleOpacity} 
-        className="absolute bottom-1 right-1 z-20 bg-gray-950/85 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 border border-white/20 backdrop-blur-2xs select-none max-w-[88%] truncate pointer-events-none"
+        className="absolute bottom-1 right-1 z-20 text-white text-[9px] font-bold px-1 py-0.5 flex items-center gap-1 drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.95)] select-none max-w-[88%] truncate pointer-events-none"
       >
         {showIcon && <Phone size={10} className="text-[#ff6600] shrink-0" />}
         <span className="truncate">{customBottomText || `📞 ${phone} (태왕)`}</span>
@@ -116,7 +115,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   const renderTopLeft = () => (
     <div 
       style={styleOpacity} 
-      className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 md:top-3 md:left-3 z-20 bg-gradient-to-r from-[#ff6600]/90 to-[#e65c00]/90 text-white text-[10px] sm:text-xs md:text-sm font-extrabold px-2 py-1 sm:px-3 sm:py-1 md:px-3.5 md:py-1.5 rounded-md sm:rounded-lg md:rounded-xl shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/30 backdrop-blur-xs select-none max-w-[85%] truncate"
+      className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 md:top-3 md:left-3 z-20 text-white text-[10px] sm:text-xs md:text-sm font-extrabold px-1.5 py-0.5 sm:px-2 sm:py-1 flex items-center gap-1 sm:gap-1.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] select-none max-w-[85%] truncate"
     >
       {showIcon && <Star size={13} fill="currentColor" className="text-yellow-300 shrink-0" />}
       <span className="truncate">{customTopText || `⭐ [태왕 360 VR] 100% 현장 검증 실매물`}</span>
@@ -125,12 +124,11 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
 
   const renderCenter = () => (
     <div 
-      style={styleOpacity}
       className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-2 sm:p-4 md:p-6"
     >
       {showIcon && (
-        <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
-          <TaewangLogoIcon className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 shrink-0 opacity-100" />
+        <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)] opacity-10" style={{ opacity: 0.1 }}>
+          <TaewangLogoIcon className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 shrink-0" />
         </div>
       )}
     </div>
@@ -139,7 +137,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   const renderBottomRight = () => (
     <div 
       style={styleOpacity} 
-      className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 md:bottom-3 md:right-3 z-20 bg-gray-950/85 text-white text-[10px] sm:text-xs md:text-sm font-bold px-2 py-1 sm:px-3 sm:py-1 md:px-3.5 md:py-1.5 rounded-md sm:rounded-lg md:rounded-xl shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/20 backdrop-blur-xs select-none max-w-[85%] truncate"
+      className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 md:bottom-3 md:right-3 z-20 text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 flex items-center gap-1 sm:gap-1.5 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] select-none max-w-[85%] truncate"
     >
       {showIcon && <Phone size={13} className="text-[#ff6600] shrink-0" />}
       <span className="truncate">{customBottomText || `📞 상담문의: ${phone} (${officeName.slice(0, 4)})`}</span>

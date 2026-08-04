@@ -1156,7 +1156,22 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
   const [copiedPos, setCopiedPos] = useState<string | null>(null);
-  const [watermarkStyle, setWatermarkStyle] = useState<WatermarkPosition>('center');
+  
+  const initialDetails = selectedProperty?.details || {};
+  const [watermarkStyle, setWatermarkStyle] = useState<WatermarkPosition>(
+    initialDetails.watermark_pos || 'center'
+  );
+  const [showWatermark, setShowWatermark] = useState<boolean>(
+    initialDetails.show_watermark !== undefined ? initialDetails.show_watermark : true
+  );
+
+  useEffect(() => {
+    if (selectedProperty) {
+      const details = selectedProperty.details || {};
+      setWatermarkStyle(details.watermark_pos || 'center');
+      setShowWatermark(details.show_watermark !== undefined ? details.show_watermark : true);
+    }
+  }, [selectedProperty]);
 
   const handleCopyLink = (pos: string) => {
     const currentUrl = window.location.href;
@@ -1786,7 +1801,7 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                                 alt={`블로그 이미지 ${imgIdx + 1}`} 
                                 className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" 
                               />
-                              <WatermarkOverlay position={watermarkStyle} />
+                              {showWatermark && <WatermarkOverlay position={watermarkStyle} />}
                             </div>
                           ))}
                         </div>

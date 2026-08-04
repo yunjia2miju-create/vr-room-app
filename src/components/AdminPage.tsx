@@ -75,6 +75,8 @@ interface Property {
     description?: string;
     blog?: string;
     blog_images?: string[];
+    show_watermark?: boolean;
+    watermark_pos?: string;
   };
 }
 
@@ -630,6 +632,8 @@ export default function AdminPage({
     setDetailDescription('');
     setDetailBlog('');
     setDetailBlogImages([]);
+    setShowAdminWatermark(true);
+    setAdminWatermarkPos('center');
 
     setIsFormOpen(true);
   };
@@ -673,6 +677,8 @@ export default function AdminPage({
     setDetailDescription(details.description || '');
     setDetailBlog(details.blog || '');
     setDetailBlogImages(Array.isArray(details.blog_images) ? details.blog_images : []);
+    setShowAdminWatermark(details.show_watermark !== undefined ? details.show_watermark : true);
+    setAdminWatermarkPos(details.watermark_pos || 'center');
 
     setIsFormOpen(true);
   };
@@ -708,7 +714,9 @@ export default function AdminPage({
       total_parking: detailTotalParking,
       description: detailDescription || `구미시 ${formAddr}에 위치한 아름답고 수려한 ${formName} ${formRoom}호 공실입니다. 최상의 조건으로 모십니다.`,
       blog: detailBlog,
-      blog_images: detailBlogImages
+      blog_images: detailBlogImages,
+      show_watermark: showAdminWatermark,
+      watermark_pos: adminWatermarkPos
     };
 
     // Automatic parse: If the bulk paste text area contains text, automatically parse and merge it on save!
@@ -737,7 +745,9 @@ export default function AdminPage({
           total_parking: parsed.total_parking || detailsObj.total_parking,
           description: parsed.description || detailsObj.description,
           blog: parsed.blog || detailsObj.blog,
-          blog_images: detailsObj.blog_images
+          blog_images: detailsObj.blog_images,
+          show_watermark: detailsObj.show_watermark,
+          watermark_pos: detailsObj.watermark_pos
         };
       }
     }
