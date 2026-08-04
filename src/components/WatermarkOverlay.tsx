@@ -85,7 +85,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
         className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-1"
       >
         {showIcon && (
-          <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] opacity-10" style={{ opacity: 0.1 }}>
+          <div className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] opacity-20" style={{ opacity: 0.2 }}>
             <TaewangLogoIcon className="w-5 h-5 shrink-0" />
           </div>
         )}
@@ -127,7 +127,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
       className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-2 sm:p-4 md:p-6"
     >
       {showIcon && (
-        <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)] opacity-10" style={{ opacity: 0.1 }}>
+        <div className="drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)] opacity-20" style={{ opacity: 0.2 }}>
           <TaewangLogoIcon className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 shrink-0" />
         </div>
       )}
