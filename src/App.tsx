@@ -943,8 +943,8 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                           )}
                         </div>
 
-                        {/* Center VR badge/icon overlay (Compact & Sleek) */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white pointer-events-none z-10">
+                        {/* Center VR badge/icon overlay (Hidden on screen per user request so thumbnail image is clear) */}
+                        <div className="hidden absolute inset-0 flex flex-col items-center justify-center text-white pointer-events-none z-10">
                           <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30 flex items-center gap-1.5 shadow-md">
                             <Vr360LogoIcon className="w-5 h-5 text-white shrink-0" />
                             <span className="text-xs font-bold text-orange-200 tracking-wide">360° VR 터치하여 감상</span>
