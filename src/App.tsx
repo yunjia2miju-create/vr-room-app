@@ -879,7 +879,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                                 }}
                               />
                               {/* PC 대표사진 워터마크 (50% 투명도 주황 건물 로고 아이콘 + 360 VR 투어) */}
-                              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-black/15">
+                              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <div className="flex flex-col items-center justify-center opacity-50 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                                   <TaewangLogoIcon className="w-6 h-6 shrink-0" />
                                   <span className="text-white font-extrabold text-[10px] tracking-tight whitespace-nowrap drop-shadow-sm mt-0.5">
@@ -942,27 +942,24 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                         <img 
                           src={vrImgUrl} 
                           alt={`${row.name} 360 VR`} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-95"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-100"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = '/sphere.jpg';
                           }}
                         />
                         
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/40 pointer-events-none"></div>
-
-                        {/* Top Badges over image */}
+                        {/* Top Badges over image (Clear badges with shadow) */}
                         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 z-10 pointer-events-none">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-md border border-white/20">
+                            <span className="bg-black/70 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-md border border-white/20 shadow-md">
                               매물번호 {listingIdText}
                             </span>
-                            <span className="bg-[#ff6600] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-xs">
+                            <span className="bg-[#ff6600] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-md">
                               {row.type}
                             </span>
                           </div>
                           {row.vr && (
-                            <span className="bg-[#0f223d] text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md border border-blue-400/30">
+                            <span className="bg-[#0f223d]/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md border border-blue-400/30">
                               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                               360° VR
                             </span>
@@ -977,13 +974,15 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                           </div>
                         </div>
 
-                        {/* Bottom image overlay caption */}
+                        {/* Bottom image overlay caption (Neat text box + drop shadow without obscuring image) */}
                         <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10 text-white pointer-events-none">
-                          <div className="font-extrabold text-base sm:text-lg drop-shadow-md">
-                            {row.name} {isLoggedIn && row.room ? `${row.room}호` : ''}
-                          </div>
-                          <div className="text-xs text-gray-200 drop-shadow-sm flex items-center gap-1">
-                            <span>📍 구미시 {formatAddress(row.addr, isLoggedIn)}</span>
+                          <div className="inline-block bg-black/65 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 shadow-xl">
+                            <div className="font-extrabold text-base sm:text-lg text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] leading-tight">
+                              {row.name} {isLoggedIn && row.room ? `${row.room}호` : ''}
+                            </div>
+                            <div className="text-xs text-gray-100 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] flex items-center gap-1 mt-0.5">
+                              <span>📍 구미시 {formatAddress(row.addr, isLoggedIn)}</span>
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -1539,7 +1539,7 @@ export default function AdminPage({
                                       setDraggedVrIndex(null);
                                       setDragOverVrIndex(null);
                                     }}
-                                    className={`relative group aspect-video rounded-xl overflow-hidden border-2 transition-all bg-black/5 shadow-sm cursor-grab active:cursor-grabbing select-none ${
+                                    className={`relative group aspect-video rounded-xl overflow-hidden border-2 transition-all bg-gray-100 shadow-sm cursor-grab active:cursor-grabbing select-none ${
                                       isDragging 
                                         ? 'opacity-40 scale-95 border-dashed border-[#ff6600]' 
                                         : isDragOver
@@ -1551,9 +1551,9 @@ export default function AdminPage({
                                   >
                                     <img src={url.trim()} alt={`VR Photo ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=Invalid+Image'; }} />
                                     
-                                    {/* Drag Grip Center Overlay on Hover */}
-                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                                      <div className="bg-black/70 text-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow.md">
+                                    {/* Drag Grip Center Overlay on Hover (Without dark full overlay) */}
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                      <div className="bg-black/75 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-xs">
                                         <GripVertical size={14} />
                                         드래그하여 이동
                                       </div>
@@ -1561,12 +1561,12 @@ export default function AdminPage({
 
                                     {/* Badge & Star Button */}
                                     {idx === 0 ? (
-                                      <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm flex items-center gap-1 pointer-events-none">
+                                      <div className="absolute top-1.5 left-1.5 bg-[#ff6600] text-white text-[11px] font-extrabold px-2 py-0.5 rounded shadow-md flex items-center gap-1 pointer-events-none z-10">
                                         <Star size={12} fill="currentColor" />
                                         대표 360사진 {imageSizes[url.trim()] ? `(${formatBytes(imageSizes[url.trim()])})` : ''}
                                       </div>
                                     ) : (
-                                      <div className="absolute top-1.5 left-1.5 bg-emerald-600/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-none">
+                                      <div className="absolute top-1.5 left-1.5 bg-emerald-600/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow-md pointer-events-none z-10">
                                         VR {idx + 1} {imageSizes[url.trim()] ? `(${formatBytes(imageSizes[url.trim()])})` : ''}
                                       </div>
                                     )}
@@ -1583,7 +1583,7 @@ export default function AdminPage({
                                             urls.unshift(selected);
                                             setFormVrUrl(urls.join('\n'));
                                           }}
-                                          className="bg-black/60 hover:bg-yellow-500 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                          className="bg-black/60 hover:bg-yellow-500 text-white p-1 rounded transition-colors shadow-md cursor-pointer"
                                           title="대표 사진으로 설정"
                                         >
                                           <Star size={14} />
@@ -1597,16 +1597,16 @@ export default function AdminPage({
                                           urls.splice(idx, 1);
                                           setFormVrUrl(urls.join('\n'));
                                         }}
-                                        className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors shadow cursor-pointer"
+                                        className="bg-red-600/90 hover:bg-red-600 text-white p-1 rounded transition-colors shadow-md cursor-pointer"
                                         title="이미지 삭제"
                                       >
                                         <Trash2 size={14} />
                                       </button>
                                     </div>
 
-                                    {/* Bottom Navigation Overlay (Up, Down, Left, Right) */}
-                                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-1.5 flex items-center justify-between text-white z-10">
-                                      <div className="flex items-center gap-1">
+                                    {/* Bottom Navigation Overlay (Clean & Clear, without heavy dark gradient) */}
+                                    <div className="absolute bottom-1 inset-x-1.5 flex items-center justify-between text-white z-10 pointer-events-none">
+                                      <div className="flex items-center gap-1 pointer-events-auto">
                                         {/* Move Left */}
                                         <button
                                           type="button"
@@ -1621,7 +1621,7 @@ export default function AdminPage({
                                               setFormVrUrl(urls.join('\n'));
                                             }
                                           }}
-                                          className="bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:hover:bg-white/20 text-white p-1 rounded transition-all cursor-pointer disabled:cursor-not-allowed"
+                                          className="bg-black/60 hover:bg-black/80 disabled:opacity-20 disabled:hover:bg-black/60 text-white p-1 rounded shadow-md transition-all cursor-pointer disabled:cursor-not-allowed"
                                           title="왼쪽(이전)으로 이동"
                                         >
                                           <ChevronLeft size={16} />
