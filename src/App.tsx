@@ -937,8 +937,8 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                       onClick={() => navigate('/property/' + row.id)}
                       className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col overflow-hidden"
                     >
-                      {/* Top: Generous 360 VR Photo Preview Container (Dynamic 2:1 aspect ratio for 360 panoramas) */}
-                      <div className="relative w-full aspect-[2/1] bg-gray-900 overflow-hidden group">
+                      {/* Top: Generous 360 VR Photo Preview Container (Taller aspect ratio on mobile) */}
+                      <div className="relative w-full aspect-[4/3] sm:aspect-[2/1] bg-gray-900 overflow-hidden group">
                         <img 
                           src={vrImgUrl} 
                           alt={`${row.name} 360 VR`} 
