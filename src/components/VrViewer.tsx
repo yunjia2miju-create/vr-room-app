@@ -246,6 +246,16 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         </div>
       )}
 
+      {/* Property Name Badge at top left (matching left/right arrow opacity bg-black/40 backdrop-blur-sm) */}
+      {isLoaded && propertyName && (
+        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 pointer-events-none flex items-center">
+          <div className="bg-black/40 backdrop-blur-sm text-white text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-full border border-white/20 shadow-md flex items-center gap-1.5">
+            <span className="text-orange-400">🏢</span>
+            <span>{propertyName}</span>
+          </div>
+        </div>
+      )}
+
       {/* Navigation Arrows */}
       {urls.length > 1 && (
         <>
