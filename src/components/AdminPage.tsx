@@ -964,268 +964,43 @@ export default function AdminPage({
 
         {activeTab === 'properties' && (
           <>
-            {/* Action Controls & Search Filters */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
-              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                {/* Search Input */}
-                <div className="relative w-full sm:w-64">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Search size={16} />
-                  </span>
-                  <input 
-                    type="text"
-                    placeholder="건물명, 주소, 비고 검색..."
-                    value={adminSearch}
-                    onChange={(e) => setAdminSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-[#ff6600] outline-none transition-all"
-                  />
+            {isFormOpen ? (
+              /* Inline Property Registration / Editing Form Card */
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden animate-in fade-in duration-200">
+                {/* Form Header */}
+                <div className="bg-gray-900 text-white px-5 sm:px-8 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      type="button"
+                      onClick={() => setIsFormOpen(false)}
+                      className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white rounded-xl transition-colors flex items-center gap-1.5 text-xs sm:text-sm font-bold cursor-pointer"
+                    >
+                      <ArrowLeft size={18} />
+                      <span className="hidden sm:inline">매물 목록으로 돌아가기</span>
+                    </button>
+                    <div className="h-5 w-px bg-gray-700 hidden sm:block"></div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        <Settings size={18} className="text-[#ff6600]" />
+                        {editingProperty ? `매물 수정: ${editingProperty.name} ${editingProperty.room}호` : '새로운 공실 매물 등록'}
+                      </h3>
+                      <p className="text-xs text-gray-400 font-medium">관리자 전용 매물 정보 및 VR/상세항목 작성</p>
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setIsFormOpen(false)}
+                    className="p-2 bg-gray-800 hover:bg-red-600 text-gray-300 hover:text-white rounded-xl transition-colors cursor-pointer"
+                    title="닫기 (Esc)"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
 
-            {/* Type Filter */}
-            <select 
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:border-[#ff6600]"
-            >
-              <option value="전체">모든 종류</option>
-              <option value="원룸">원룸</option>
-              <option value="미투">미투</option>
-              <option value="투룸">투룸</option>
-            </select>
-          </div>
-
-          <button 
-            onClick={openCreateForm}
-            className="w-full md:w-auto bg-[#ff6600] hover:bg-[#e65c00] text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-sm font-bold shadow-sm transition-colors"
-          >
-            <Plus size={16} strokeWidth={2.5} />
-            새 공실 매물 등록
-          </button>
-        </div>
-
-        {/* Properties Management List */}
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
-                  <th className="py-4 px-6">관리부동산</th>
-                  <th className="py-4 px-6">건물명 / 호실</th>
-                  <th className="py-4 px-6">주소</th>
-                  <th className="py-4 px-6">구분</th>
-                  <th className="py-4 px-6 text-right">보증금 / 월세</th>
-                  <th className="py-4 px-6 text-center">VR 지원</th>
-                  <th className="py-4 px-6 text-center">관리 액션</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredProperties.length > 0 ? (
-                  filteredProperties.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 px-6 font-medium text-gray-600">{p.mgt}</td>
-                      <td className="py-4 px-6 font-bold text-gray-900">
-                        {p.name} <span className="text-orange-500 font-semibold text-xs ml-1 bg-orange-50 px-1.5 py-0.5 rounded">{p.room}호</span>
-                      </td>
-                      <td className="py-4 px-6 text-gray-500 truncate max-w-xs">{p.addr}</td>
-                      <td className="py-4 px-6">
-                        <span className="bg-gray-100 text-gray-700 font-bold text-xs px-2.5 py-1 rounded-full">{p.type}</span>
-                      </td>
-                      <td className="py-4 px-6 text-right font-bold text-gray-900">
-                        {p.deposit} / {p.rent} 만원
-                      </td>
-                      <td className="py-4 px-6 text-center">
-                        {p.vr ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">
-                            <Check size={12} strokeWidth={3} /> VR 활성
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 bg-gray-50 text-gray-400 text-xs font-semibold rounded-full border border-gray-100">
-                            미사용
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button 
-                            onClick={() => navigate('/property/' + p.id)}
-                            className="p-1.5 hover:bg-blue-50 text-blue-600 hover:text-blue-800 rounded-lg transition-colors border border-transparent hover:border-blue-100"
-                            title="사용자 화면 보기"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
-                          </button>
-                          <button 
-                            onClick={() => openEditForm(p)}
-                            className="p-1.5 hover:bg-orange-50 text-orange-600 hover:text-[#ff6600] rounded-lg transition-colors border border-transparent hover:border-orange-100"
-                            title="수정"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(p)}
-                            className="p-1.5 hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg transition-colors border border-transparent hover:border-red-100"
-                            title="삭제"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-gray-400">
-                      검색 조건과 일치하는 매물이 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-          </>
-        )}
-
-        {activeTab === 'board' && (
-          <div className="space-y-6">
-            {/* Board Action Controls */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
-              <div className="relative w-full md:w-64">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Search size={16} />
-                </span>
-                <input 
-                  type="text"
-                  placeholder="게시글 제목, 내용 검색..."
-                  value={boardSearch}
-                  onChange={(e) => setBoardSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-[#ff6600] outline-none transition-all"
-                />
-              </div>
-
-              <button 
-                onClick={openCreatePostForm}
-                className="w-full md:w-auto bg-[#ff6600] hover:bg-[#e65c00] text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-sm font-bold shadow-sm transition-colors"
-              >
-                <Plus size={16} strokeWidth={2.5} />
-                새 게시글 등록
-              </button>
-            </div>
-
-            {/* Board Posts Table */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden animate-in fade-in duration-150">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
-                      <th className="py-4 px-6 w-24">구분</th>
-                      <th className="py-4 px-6">제목 / 내용</th>
-                      <th className="py-4 px-6 w-36">작성일</th>
-                      <th className="py-4 px-6 w-28 text-center">중요공지</th>
-                      <th className="py-4 px-6 w-28 text-center">관리 액션</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {boardPosts && boardPosts.filter(post => 
-                      post.title.toLowerCase().includes(boardSearch.toLowerCase()) || 
-                      post.content.toLowerCase().includes(boardSearch.toLowerCase())
-                    ).length > 0 ? (
-                      boardPosts.filter(post => 
-                        post.title.toLowerCase().includes(boardSearch.toLowerCase()) || 
-                        post.content.toLowerCase().includes(boardSearch.toLowerCase())
-                      ).map((post) => (
-                        <tr key={post.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-6">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
-                              post.category === '공지' ? 'bg-orange-50 text-orange-600' :
-                              post.category === '중요' ? 'bg-red-50 text-red-600 font-black' :
-                              post.category === '이벤트' ? 'bg-blue-50 text-blue-600' :
-                              post.category === '표시의무사항' ? 'bg-purple-50 text-purple-600 border border-purple-100' : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {post.category}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex flex-col">
-                              <span className={`text-sm ${post.important ? 'font-bold text-[#ff6600]' : 'font-medium text-gray-900'}`}>
-                                {post.title}
-                              </span>
-                              <span className="text-gray-400 text-xs mt-1 truncate max-w-lg">
-                                {post.content}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-6 text-gray-500 whitespace-nowrap text-xs sm:text-sm">{post.createdAt}</td>
-                          <td className="py-4 px-6 text-center">
-                            {post.important ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 bg-red-50 text-red-600 text-xs font-bold rounded-full border border-red-100">
-                                중요
-                              </span>
-                            ) : (
-                              <span className="text-gray-300 text-xs">-</span>
-                            )}
-                          </td>
-                          <td className="py-4 px-6 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button 
-                                onClick={() => openEditPostForm(post)}
-                                className="p-1.5 hover:bg-orange-50 text-orange-600 hover:text-[#ff6600] rounded-lg transition-colors border border-transparent hover:border-orange-100"
-                                title="수정"
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDeletePostClick(post)}
-                                className="p-1.5 hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg transition-colors border border-transparent hover:border-red-100"
-                                title="삭제"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="text-center py-12 text-gray-400">
-                          등록된 게시글이 없거나 검색 결과와 일치하는 항목이 없습니다.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </main>
-
-      {/* MODAL FORM (Full-screen for PC, Mobile, and Tablet) */}
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-white z-[100] flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in duration-200">
-          <div className="w-full h-full flex flex-col overflow-hidden">
-            {/* Modal Header */}
-            <div className="bg-gray-900 text-white shrink-0 shadow-md">
-              <div className="w-full px-6 py-4 sm:py-5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Settings size={20} className="text-[#ff6600]" />
-                  <h3 className="text-base sm:text-lg font-bold tracking-tight">
-                    {editingProperty ? `매물 수정: ${editingProperty.name} ${editingProperty.room}호` : '새로운 공실 매물 등록'}
-                  </h3>
-                </div>
-                <button 
-                  onClick={() => setIsFormOpen(false)}
-                  className="p-1.5 bg-gray-800 hover:bg-red-600 rounded-lg transition-colors cursor-pointer"
-                  title="닫기 (Esc)"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Form Scrollable Area */}
-            <form onSubmit={handleSaveProperty} className="flex-1 overflow-y-auto bg-white py-6 sm:py-10">
-              <div className="w-full px-6 md:px-12 pb-12 space-y-12">
+                {/* Form Body */}
+                <form onSubmit={handleSaveProperty} className="bg-gray-50/30 py-6 sm:py-8">
+                  <div className="max-w-4xl mx-auto px-4 sm:px-8 space-y-10">
+                    {/* Section 1: Basic Information */}
               
               {/* Section 1: Basic Information */}
               <div className="space-y-6">
@@ -2508,30 +2283,162 @@ export default function AdminPage({
                 </div>
               </div>
             </div>
-          </form>
 
-            {/* Modal Footer */}
-            <div className="bg-gray-100 border-t border-gray-200 shrink-0 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] bg-opacity-95 backdrop-blur-sm">
-              <div className="w-full px-6 md:px-12 py-4 flex justify-end gap-3">
-                <button 
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl border border-gray-200 text-base font-bold transition-colors cursor-pointer"
+              {/* Form Footer */}
+              <div className="bg-white border-t border-gray-200 shrink-0 shadow-xs">
+                <div className="w-full max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+                  <div className="text-xs text-gray-500 font-medium hidden sm:block">
+                    * 필수 항목(<span className="text-red-500 font-bold">*</span>)을 입력하신 후 저장 버튼을 누르세요.
+                  </div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button 
+                      type="button"
+                      onClick={() => setIsFormOpen(false)}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl border border-gray-300 text-sm sm:text-base font-bold transition-colors cursor-pointer"
+                    >
+                      취소 (목록으로)
+                    </button>
+                    <button 
+                      type="submit"
+                      className="bg-[#ff6600] hover:bg-[#e65c00] text-white px-8 py-2.5 rounded-xl text-sm sm:text-base font-bold shadow-md transition-all cursor-pointer hover:shadow-lg flex items-center gap-2"
+                    >
+                      <span>{editingProperty ? '수정 내용 저장' : '공실 매물로 추가하기'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        ) : (
+          /* Default Properties List Table View */
+          <div className="space-y-6">
+            {/* Action Controls & Search Filters */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Search size={16} />
+                  </span>
+                  <input 
+                    type="text"
+                    placeholder="건물명, 주소, 비고 검색..."
+                    value={adminSearch}
+                    onChange={(e) => setAdminSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-[#ff6600] outline-none transition-all"
+                  />
+                </div>
+
+                {/* Type Filter */}
+                <select 
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:border-[#ff6600]"
                 >
-                  취소
-                </button>
-                <button 
-                  type="button"
-                  onClick={handleSaveProperty}
-                  className="bg-[#ff6600] hover:bg-[#e65c00] text-white px-8 py-3 rounded-xl text-base font-bold shadow-sm transition-colors cursor-pointer"
-                >
-                  {editingProperty ? '수정 내용 저장' : '공실 매물로 추가'}
-                </button>
+                  <option value="전체">모든 종류</option>
+                  <option value="원룸">원룸</option>
+                  <option value="미투">미투</option>
+                  <option value="투룸">투룸</option>
+                </select>
+              </div>
+
+              <button 
+                type="button"
+                onClick={openCreateForm}
+                className="w-full md:w-auto bg-[#ff6600] hover:bg-[#e65c00] text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-sm font-bold shadow-sm transition-colors cursor-pointer"
+              >
+                <Plus size={16} strokeWidth={2.5} />
+                + 새 공실 매물 등록
+              </button>
+            </div>
+
+            {/* Properties Management List Table */}
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
+                      <th className="py-4 px-6">관리부동산</th>
+                      <th className="py-4 px-6">건물명 / 호실</th>
+                      <th className="py-4 px-6">주소</th>
+                      <th className="py-4 px-6">구분</th>
+                      <th className="py-4 px-6 text-right">보증금 / 월세</th>
+                      <th className="py-4 px-6 text-center">VR 지원</th>
+                      <th className="py-4 px-6 text-center">관리 액션</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredProperties.length > 0 ? (
+                      filteredProperties.map((p) => (
+                        <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-6 font-medium text-gray-600">{p.mgt}</td>
+                          <td className="py-4 px-6 font-bold text-gray-900">
+                            {p.name} <span className="text-orange-500 font-semibold text-xs ml-1 bg-orange-50 px-1.5 py-0.5 rounded">{p.room}호</span>
+                          </td>
+                          <td className="py-4 px-6 text-gray-500 truncate max-w-xs">{p.addr}</td>
+                          <td className="py-4 px-6">
+                            <span className="bg-gray-100 text-gray-700 font-bold text-xs px-2.5 py-1 rounded-full">{p.type}</span>
+                          </td>
+                          <td className="py-4 px-6 text-right font-bold text-gray-900">
+                            {p.deposit} / {p.rent} 만원
+                          </td>
+                          <td className="py-4 px-6 text-center">
+                            {p.vr ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">
+                                <Check size={12} strokeWidth={3} /> VR 활성
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 bg-gray-50 text-gray-400 text-xs font-semibold rounded-full border border-gray-100">
+                                미사용
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-6 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button 
+                                type="button"
+                                onClick={() => navigate('/property/' + p.id)}
+                                className="p-1.5 hover:bg-blue-50 text-blue-600 hover:text-blue-800 rounded-lg transition-colors border border-transparent hover:border-blue-100 cursor-pointer"
+                                title="사용자 화면 보기"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>
+                              </button>
+                              <button 
+                                type="button"
+                                onClick={() => openEditForm(p)}
+                                className="p-1.5 hover:bg-orange-50 text-orange-600 hover:text-[#ff6600] rounded-lg transition-colors border border-transparent hover:border-orange-100 cursor-pointer"
+                                title="수정"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button 
+                                type="button"
+                                onClick={() => handleDelete(p)}
+                                className="p-1.5 hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg transition-colors border border-transparent hover:border-red-100 cursor-pointer"
+                                title="삭제"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="text-center py-12 text-gray-400">
+                          검색 조건과 일치하는 매물이 없습니다.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </>
+    )}
+      </main>
       {/* Board Post Modal Form */}
       {isBoardFormOpen && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
