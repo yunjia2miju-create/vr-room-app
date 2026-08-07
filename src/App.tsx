@@ -812,21 +812,21 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   더블로켓
                   <Info size={14} className="text-gray-400" />
                 </div>
-                <div className="flex-1 p-3 md:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <span className="text-gray-500 text-xs">※ 실시간 다중 조건 검색이 상시 작동하고 있습니다.</span>
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 p-3 md:p-4 flex flex-col sm:flex-row items-center justify-center relative gap-4 min-h-[52px]">
+                  <span className="text-gray-500 text-xs sm:absolute sm:left-4">※ 실시간 다중 조건 검색이 상시 작동하고 있습니다.</span>
+                  <div className="flex items-center gap-3 sm:mx-auto">
                     <button 
                       onClick={() => {
                         const el = document.getElementById('vacancy-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="bg-[#0054ff] text-white px-5 py-2 rounded text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+                      className="bg-[#0054ff] text-white px-6 py-2 rounded text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
                     >
                       결과 확인
                     </button>
                     <button 
                       onClick={handleResetFilters}
-                      className="bg-[#ffcc00] text-gray-900 px-5 py-2 rounded text-sm font-bold hover:bg-yellow-500 transition-colors shadow-sm cursor-pointer"
+                      className="bg-[#ffcc00] text-gray-900 px-6 py-2 rounded text-sm font-bold hover:bg-yellow-500 transition-colors shadow-sm cursor-pointer"
                     >
                       초기화
                     </button>
