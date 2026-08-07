@@ -1,42 +1,49 @@
-{
-  "name": "react-example",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "preview": "vite preview",
-    "start": "node dist/server.cjs",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@google-cloud/storage": "^7.21.0",
-    "@google/genai": "^2.4.0",
-    "@photo-sphere-viewer/core": "^5.15.0",
-    "@tailwindcss/vite": "^4.1.14",
-    "@vitejs/plugin-react": "^5.0.4",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
-    "firebase": "^12.16.0",
-    "lucide-react": "^1.27.0",
-    "motion": "^12.23.24",
-    "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "react-router-dom": "^7.18.2",
-    "sharp": "^0.35.3",
-    "three": "^0.185.1",
-    "vite": "^6.2.3"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.14.0",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.3"
-  }
-}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <script>
+      var oldError = console.error;
+      console.error = function() {
+        var msg = Array.from(arguments).join(" ");
+        if (msg.includes("WebSocket") || msg.includes("ws://") || msg.includes("HMR")) {
+          return;
+        }
+        oldError.apply(console, arguments);
+      };
+    </script>
+    <script>
+      window.addEventListener("error", function(e) {
+        if (e.message && (e.message.includes("WebSocket") || e.message.includes("ws://"))) {
+          e.preventDefault();
+          return;
+        }
+      });
+      window.addEventListener("unhandledrejection", function(e) {
+        e.preventDefault();
+      });
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>태왕공인중개사사무소 - 구미시 원룸, 투룸, 360 VR 실매물 전문</title>
+    <!-- 구글 및 네이버 검색엔진용 메타 디스크립션 -->
+    <meta name="description" content="태왕공인중개사사무소. 대표 : 유정화 | 등록번호 : 47190-2016-00027. 소재지 : 구미시 송정대로 6길 18 (송정동 472-10번지). 연락처 : 054-455-6789, 010-7590-0111. 구미시 원룸, 투룸, 쓰리룸, 아파트 360 VR 전문 중개." />
+    <meta name="keywords" content="태왕공인중개사사무소, 구미 부동산, 구미 원룸, 구미 투룸, 구미 쓰리룸, 054-455-6789, 유정화" />
+    <meta name="author" content="태왕공인중개사사무소" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- 카카오톡/소셜 미디어 공유용 OG 태그 시작 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="태왕공인중개사사무소" />
+    <meta property="og:title" content="태왕공인중개사사무소" />
+    <meta property="og:description" content="태왕공인중개사사무소. 대표 : 유정화 | 등록번호 : 47190-2016-00027. 소재지 : 구미시 송정대로 6길 18 (송정동 472-10번지). 연락처 : 054-455-6789, 010-7590-0111." />
+    <meta property="og:image" content="https://054-455-6789.com/thumbnail.jpg" />
+    <meta property="og:url" content="http://054-455-6789.com" />
+    <!-- 카카오톡/소셜 미디어 공유용 OG 태그 끝 -->
+    <meta name="google-site-verification" content="dbV3t6bKKwff0j-dqpE82XvxW-oCbxonJqc6MGmI-7Y" />
+    <meta name="naver-site-verification" content="8bf8af53cca5babc4f50bd5aa1b692ae9c9e8ff9" />
+  </head>
+  <body>
+    <div id="root"><div style="padding: 20px; text-align: center; font-family: sans-serif; color: #666;">Loading App...</div></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

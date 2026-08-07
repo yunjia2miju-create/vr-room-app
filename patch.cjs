@@ -1,36 +1,42 @@
-const fs = require('fs');
-let code = fs.readFileSync('src/components/AdminPage.tsx', 'utf-8');
-
-// import auth
-code = code.replace(
-  "import { storage } from '../firebase';",
-  "import { storage, auth, googleProvider } from '../firebase';\nimport { signInWithPopup } from 'firebase/auth';"
-);
-
-// Add handleGoogleLogin
-code = code.replace(
-  "  const handleLogin = (e: React.FormEvent) => {",
-  `  const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      if (result.user) {
-        sessionStorage.setItem('taewang_admin_logged', 'true');
-        setIsLoggedIn(true);
-        setLoginError('');
-      }
-    } catch (error: any) {
-      console.error('Google login error:', error);
-      setLoginError('구글 로그인에 실패했습니다. ' + (error.message || ''));
-    }
-  };
-
-  const handleLogin = (e: React.FormEvent) => {`
-);
-
-// Add onClick to button
-code = code.replace(
-  '<button type="button" className="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">',
-  '<button type="button" onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3.5 rounded-xl font-bold transition-colors shadow-sm text-sm flex items-center justify-center gap-2 relative">'
-);
-
-fs.writeFileSync('src/components/AdminPage.tsx', code);
+{
+  "name": "react-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "preview": "vite preview",
+    "start": "node dist/server.cjs",
+    "clean": "rm -rf dist server.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.21.0",
+    "@google/genai": "^2.4.0",
+    "@photo-sphere-viewer/core": "^5.15.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "firebase": "^12.16.0",
+    "lucide-react": "^1.27.0",
+    "motion": "^12.23.24",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "react-router-dom": "^7.18.2",
+    "sharp": "^0.35.3",
+    "three": "^0.185.1",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.14.0",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3"
+  }
+}
