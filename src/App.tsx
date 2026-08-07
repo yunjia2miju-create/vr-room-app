@@ -331,6 +331,18 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
       }
 
       return true;
+    }).sort((a, b) => {
+      // 1. Compare createdAt / registeredAt / updatedAt dates if available
+      const timeA = a.createdAt || a.registeredAt || a.updatedAt ? new Date(a.createdAt || a.registeredAt || a.updatedAt).getTime() : 0;
+      const timeB = b.createdAt || b.registeredAt || b.updatedAt ? new Date(b.createdAt || b.registeredAt || b.updatedAt).getTime() : 0;
+      if (!isNaN(timeA) && !isNaN(timeB) && timeA !== timeB && (timeA > 0 || timeB > 0)) {
+        return timeB - timeA;
+      }
+
+      // 2. Compare numeric ID descending (e.g. TW-31 > TW-17 > TW-2)
+      const numA = parseInt(String(a.id || '').replace(/[^0-9]/g, ''), 10) || 0;
+      const numB = parseInt(String(b.id || '').replace(/[^0-9]/g, ''), 10) || 0;
+      return numB - numA;
     });
   }, [properties, activeStatusFilter, selectedGroupFilter, searchType, searchDong, searchContract, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId]);
 
@@ -345,19 +357,37 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
   // Watermark Style State
   const [watermarkStyle, setWatermarkStyle] = useState<WatermarkPosition>('all');
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  // Load More state
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
-    setCurrentPage(1);
+    setVisibleCount(10);
   }, [searchType, searchDong, searchContract, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId, selectedGroupFilter, activeStatusFilter]);
 
-  const totalPages = Math.ceil(filteredUserProperties.length / itemsPerPage) || 1;
-  const pagedProperties = React.useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredUserProperties.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredUserProperties, currentPage]);
+  const displayedProperties = React.useMemo(() => {
+    return filteredUserProperties.slice(0, visibleCount);
+  }, [filteredUserProperties, visibleCount]);
+
+  const handleLoadMore = () => {
+    const prevCount = visibleCount;
+    setVisibleCount(prev => prev + 10);
+    
+    // Smooth scroll to the newly appended 11th item (index prevCount) without screen flicker or lag
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const targetEl = document.getElementById(`property-item-${prevCount}`) || document.getElementById(`property-item-mobile-${prevCount}`);
+        if (targetEl) {
+          const rect = targetEl.getBoundingClientRect();
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          const headerOffset = window.innerWidth < 1024 ? 80 : 120;
+          window.scrollTo({
+            top: rect.top + scrollTop - headerOffset,
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans text-gray-800 flex flex-col">
@@ -1052,13 +1082,14 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   </tr>
                 </thead>
                 <tbody>
-                  {pagedProperties.length > 0 ? (
-                    pagedProperties.map((row, idx) => {
+                  {displayedProperties.length > 0 ? (
+                    displayedProperties.map((row, idx) => {
                       const vrImgUrl = row.vrUrl ? (row.vrUrl.split(/(?=https?:\/\/)/)[0]?.trim() || '/sphere.jpg') : '/sphere.jpg';
 
                       return (
                         <tr 
-                          key={idx} 
+                          key={row.id || idx}
+                          id={`property-item-${idx}`}
                           className="group border-b border-gray-200 hover:bg-orange-50/30 transition-colors cursor-pointer" 
                           onClick={() => {
                             navigate('/property/' + row.id);
@@ -1122,19 +1153,20 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
 
             {/* Mobile & Tablet Combined Photo + Card Layout (lg:hidden) */}
             <div className="lg:hidden flex flex-col gap-4">
-              {pagedProperties.length > 0 ? (
-                pagedProperties.map((row, idx) => {
+              {displayedProperties.length > 0 ? (
+                displayedProperties.map((row, idx) => {
                   const vrImgUrl = row.vrUrl ? (row.vrUrl.split(/(?=https?:\/\/)/)[0]?.trim() || '/sphere.jpg') : '/sphere.jpg';
                   const listingIdText = row.listingNumber || (row.id?.toString().startsWith('TW-') ? row.id : `TW-${row.id}`);
 
                   return (
                     <div 
-                      key={idx}
+                      key={row.id || idx}
+                      id={`property-item-mobile-${idx}`}
                       onClick={() => navigate('/property/' + row.id)}
                       className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col overflow-hidden"
                     >
                       {/* Top: Generous 360 VR Photo Preview Container (Taller aspect ratio on mobile) */}
-                      <div className="relative w-full aspect-[4/3] sm:aspect-[2/1] bg-gray-900 overflow-hidden group">
+                      <div className="relative w-full aspect-[4/3] sm:aspect-[2/1] bg-gray-100 overflow-hidden group">
                         <img 
                           src={vrImgUrl} 
                           alt={`${row.name} 360 VR`} 
@@ -1222,50 +1254,22 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
               )}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-1.5 mt-8">
+            {/* Load More Button */}
+            {visibleCount < filteredUserProperties.length && (
+              <div className="flex flex-col items-center gap-2 mt-8">
                 <button 
-                  onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
-                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
+                  onClick={handleLoadMore}
+                  className="bg-white border-2 border-[#ff6600] text-[#ff6600] hover:bg-[#ff6600] hover:text-white font-bold px-8 py-3 rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm md:text-base cursor-pointer group"
                 >
-                  {'<<'}
+                  <span>매물 더보기</span>
+                  <span className="text-xs bg-orange-100 group-hover:bg-white group-hover:text-[#ff6600] text-[#ff6600] px-2.5 py-0.5 rounded-full font-bold transition-colors">
+                    {Math.min(10, filteredUserProperties.length - visibleCount)}개 더보기
+                  </span>
+                  <ChevronDown size={18} className="group-hover:translate-y-0.5 transition-transform" />
                 </button>
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
-                >
-                  {'<'}
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button 
-                    key={p} 
-                    onClick={() => setCurrentPage(p)}
-                    className={`w-8 h-8 flex items-center justify-center rounded text-[14px] transition-colors cursor-pointer ${
-                      p === currentPage 
-                        ? 'bg-[#ff6600] text-white font-bold shadow-sm' 
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
-                >
-                  {'>'}
-                </button>
-                <button 
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
-                >
-                  {'>>'}
-                </button>
+                <span className="text-xs text-gray-500 font-medium">
+                  전체 {filteredUserProperties.length}개 중 {displayedProperties.length}개 표시 중
+                </span>
               </div>
             )}
           </div>
@@ -2342,7 +2346,11 @@ export default function App() {
       const { db } = await import('./firebase');
       const { collection, addDoc } = await import('firebase/firestore');
       const nextId = (Math.max(...properties.map(p => parseInt(p.id) || 0), 0) + 1).toString();
-      await addDoc(collection(db, 'properties'), { ...newProperty, id: nextId });
+      await addDoc(collection(db, 'properties'), { 
+        ...newProperty, 
+        id: nextId,
+        createdAt: newProperty.createdAt || new Date().toISOString()
+      });
     } catch (e) {
       console.error('Error adding property:', e);
     }
