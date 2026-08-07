@@ -115,7 +115,11 @@ export default function AdminPage({
   
   // Auth state from sessionStorage to persist during tab session
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem('taewang_admin_logged') === 'true';
+    try {
+      return sessionStorage.getItem('taewang_admin_logged') === 'true';
+    } catch {
+      return false;
+    }
   });
 
   const [loginError, setLoginError] = useState('');

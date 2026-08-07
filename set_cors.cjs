@@ -1,20 +1,19 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/ba3837e9-97fe-4bbb-8120-effbdd2a934c
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+const { Storage } = require('@google-cloud/storage');
+async function setCors() {
+  try {
+    const storage = new Storage();
+    const bucket = storage.bucket('project-3758368870789431339.firebasestorage.app');
+    await bucket.setCorsConfiguration([
+      {
+        maxAgeSeconds: 3600,
+        method: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+        origin: ['*'],
+        responseHeader: ['Content-Type', 'Authorization', 'Content-Length', 'User-Agent', 'x-goog-resumable'],
+      },
+    ]);
+    console.log('CORS rules set successfully');
+  } catch (error) {
+    console.error('Error setting CORS:', error.message);
+  }
+}
+setCors();

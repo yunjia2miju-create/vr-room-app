@@ -1,7 +1,22 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/main.tsx', 'utf8');
+let code = fs.readFileSync('server.ts', 'utf8');
+
+// Hoist vite initialization
 code = code.replace(
-  "createRoot(document.getElementById('root')).render(",
-  "const rootElement = document.getElementById('root');\nif (!rootElement) throw new Error('Failed to find the root element');\ncreateRoot(rootElement).render("
+  "  const handlePropertyOg",
+  `  let viteServer: any = null;\n  if (process.env.NODE_ENV !== 'production') {\n    viteServer = await createViteServer({\n      server: { middlewareMode: true },\n      appType: 'spa',\n    });\n  }\n\n  const handlePropertyOg`
 );
-fs.writeFileSync('src/main.tsx', code);
+
+// Apply vite transform
+code = code.replace(
+  "      res.setHeader('Content-Type', 'text/html; charset=utf-8');\n      return res.send(html);",
+  "      if (viteServer) {\n        html = await viteServer.transformIndexHtml(req.originalUrl, html);\n      }\n      res.setHeader('Content-Type', 'text/html; charset=utf-8');\n      return res.send(html);"
+);
+
+// Update app.use(vite.middlewares)
+code = code.replace(
+  "  if (process.env.NODE_ENV !== 'production') {\n    const vite = await createViteServer({\n      server: { middlewareMode: true },\n      appType: 'spa',\n    });\n    app.use(vite.middlewares);\n  } else {",
+  "  if (process.env.NODE_ENV !== 'production' && viteServer) {\n    app.use(viteServer.middlewares);\n  } else {"
+);
+
+fs.writeFileSync('server.ts', code);

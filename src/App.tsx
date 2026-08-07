@@ -11,6 +11,7 @@ import {
   FileText, 
   Info, 
   Leaf,
+  Loader2,
   Plus, 
   Search, 
   Shield, 
@@ -62,22 +63,32 @@ export function formatAddress(addr: string, isLoggedIn: boolean) {
 
 function useIsLoggedIn() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem('taewang_admin_logged') === 'true' || !!auth.currentUser;
+    try {
+      return sessionStorage.getItem('taewang_admin_logged') === 'true' || !!auth.currentUser;
+    } catch {
+      return !!auth.currentUser;
+    }
   });
 
   const location = useLocation();
 
   useEffect(() => {
     const checkLogin = () => {
-      const logged = sessionStorage.getItem('taewang_admin_logged') === 'true' || !!auth.currentUser;
-      setIsLoggedIn(logged);
+      try {
+        const logged = sessionStorage.getItem('taewang_admin_logged') === 'true' || !!auth.currentUser;
+        setIsLoggedIn(logged);
+      } catch {
+        setIsLoggedIn(!!auth.currentUser);
+      }
     };
 
     checkLogin();
 
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        sessionStorage.setItem('taewang_admin_logged', 'true');
+        try {
+          sessionStorage.setItem('taewang_admin_logged', 'true');
+        } catch {}
         setIsLoggedIn(true);
       } else {
         checkLogin();
@@ -812,21 +823,21 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   더블로켓
                   <Info size={14} className="text-gray-400" />
                 </div>
-                <div className="flex-1 p-3 md:p-4 flex flex-col sm:flex-row items-center justify-center relative gap-4 min-h-[52px]">
-                  <span className="text-gray-500 text-xs sm:absolute sm:left-4">※ 실시간 다중 조건 검색이 상시 작동하고 있습니다.</span>
-                  <div className="flex items-center gap-3 sm:mx-auto">
+                <div className="flex-1 p-3 md:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <span className="text-gray-500 text-xs">※ 실시간 다중 조건 검색이 상시 작동하고 있습니다.</span>
+                  <div className="flex items-center gap-2">
                     <button 
                       onClick={() => {
                         const el = document.getElementById('vacancy-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="bg-[#0054ff] text-white px-6 py-2 rounded text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+                      className="bg-[#0054ff] text-white px-5 py-2 rounded text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
                     >
                       결과 확인
                     </button>
                     <button 
                       onClick={handleResetFilters}
-                      className="bg-[#ffcc00] text-gray-900 px-6 py-2 rounded text-sm font-bold hover:bg-yellow-500 transition-colors shadow-sm cursor-pointer"
+                      className="bg-[#ffcc00] text-gray-900 px-5 py-2 rounded text-sm font-bold hover:bg-yellow-500 transition-colors shadow-sm cursor-pointer"
                     >
                       초기화
                     </button>
@@ -1367,6 +1378,70 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
   const [copiedPos, setCopiedPos] = useState<string | null>(null);
   
+  // Blog image upload state
+  const [isUploadingBlogImg, setIsUploadingBlogImg] = useState(false);
+  const [blogUploadProgress, setBlogUploadProgress] = useState(0);
+  const blogFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleBlogFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !selectedProperty) return;
+
+    setIsUploadingBlogImg(true);
+    setBlogUploadProgress(0);
+
+    try {
+      const { storage, db } = await import('./firebase');
+      const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
+      const { doc, updateDoc, arrayUnion } = await import('firebase/firestore');
+
+      const newUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const storageRef = ref(storage, `blog_photos/${Date.now()}_${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        const downloadURL = await new Promise<string>((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setBlogUploadProgress((prev) => {
+                const totalProgress = prev + (progress / files.length);
+                return totalProgress > 100 ? 100 : totalProgress;
+              });
+            },
+            (error) => reject(error),
+            async () => {
+              const url = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(url);
+            }
+          );
+        });
+        newUrls.push(downloadURL);
+      }
+
+      if (selectedProperty.firebaseId) {
+        const propertyRef = doc(db, 'properties', selectedProperty.firebaseId);
+        await updateDoc(propertyRef, {
+          blog_images: arrayUnion(...newUrls)
+        });
+      } else {
+        alert("Firestore ID가 없어 매물을 업데이트할 수 없습니다.");
+      }
+    } catch (error) {
+      console.error('Blog photo upload failed:', error);
+      alert('블로그 사진 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploadingBlogImg(false);
+      setBlogUploadProgress(0);
+      if (blogFileInputRef.current) {
+        blogFileInputRef.current.value = '';
+      }
+    }
+  };
+  
   const initialDetails = selectedProperty?.details || {};
   const [watermarkStyle, setWatermarkStyle] = useState<WatermarkPosition>(
     initialDetails.watermark_pos || 'center'
@@ -1886,155 +1961,158 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                   </div>
                 </div>
 
+
+                {/* 매물 일반 사진 (20과 21 사이) */}
+                {Array.isArray(d.blog_images) && d.blog_images.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex flex-col gap-4 w-full">
+                      {/* Watermark Selector ( 관리자 로그인 시에만 노출, 일반 사용자 화면에서는 숨김 ) */}
+                      {isLoggedIn && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-orange-50/70 p-3.5 rounded-xl border border-orange-200">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs sm:text-sm font-extrabold text-gray-800 flex items-center gap-1.5">
+                              <Shield size={16} className="text-[#ff6600]" />
+                              사진 워터마크 위치 설정 (다중 선택 가능):
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {(() => {
+                              const isCenterActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('center');
+                              const isBottomRightActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('bottom-right');
+                              const isTopLeftActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('top-left');
+                              const isAllActive = isCenterActive && isBottomRightActive && isTopLeftActive;
+
+                              const toggleStyle = (target: 'center' | 'bottom-right' | 'top-left' | 'all') => {
+                                if (target === 'all') {
+                                  setWatermarkStyle(isAllActive ? '' : 'all');
+                                  return;
+                                }
+
+                                let activeArr: string[] = [];
+                                if (watermarkStyle === 'all') {
+                                  activeArr = ['center', 'bottom-right', 'top-left'];
+                                } else {
+                                  activeArr = watermarkStyle.split(',').map(s => s.trim()).filter(Boolean);
+                                }
+
+                                if (activeArr.includes(target)) {
+                                  activeArr = activeArr.filter(p => p !== target);
+                                } else {
+                                  activeArr.push(target);
+                                }
+
+                                if (activeArr.length === 3) {
+                                  setWatermarkStyle('all');
+                                } else {
+                                  setWatermarkStyle(activeArr.join(','));
+                                }
+                              };
+
+                              return (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleStyle('all')}
+                                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                      isAllActive
+                                        ? 'bg-[#ff6600] text-white shadow-xs'
+                                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                    }`}
+                                  >
+                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                      isAllActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                    }`}>
+                                      {isAllActive && <Check size={10} strokeWidth={3} />}
+                                    </div>
+                                    🌟 전체 (통합 3가지)
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleStyle('center')}
+                                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                      isCenterActive
+                                        ? 'bg-[#ff6600] text-white shadow-xs'
+                                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                    }`}
+                                  >
+                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                      isCenterActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                    }`}>
+                                      {isCenterActive && <Check size={10} strokeWidth={3} />}
+                                    </div>
+                                    🏢 추천1: 중앙
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleStyle('bottom-right')}
+                                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                      isBottomRightActive
+                                        ? 'bg-[#ff6600] text-white shadow-xs'
+                                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                    }`}
+                                  >
+                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                      isBottomRightActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                    }`}>
+                                      {isBottomRightActive && <Check size={10} strokeWidth={3} />}
+                                    </div>
+                                    📞 추천2: 우측하단
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleStyle('top-left')}
+                                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                                      isTopLeftActive
+                                        ? 'bg-[#ff6600] text-white shadow-xs'
+                                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
+                                    }`}
+                                  >
+                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                                      isTopLeftActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
+                                    }`}>
+                                      {isTopLeftActive && <Check size={10} strokeWidth={3} />}
+                                    </div>
+                                    ⭐ 추천3: 좌측상단
+                                  </button>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-6 w-full">
+                        {d.blog_images.map((imgUrl, imgIdx) => (
+                          <div 
+                            key={imgIdx} 
+                            className="relative w-full aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all group bg-gray-100 select-none"
+                          >
+                            <img 
+                              src={imgUrl} 
+                              alt={`매물 사진 ${imgIdx + 1}`} 
+                              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" 
+                            />
+                            {showWatermark && <WatermarkOverlay position={watermarkStyle} />}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 21. 블로그 */}
-                {(d.blog || (Array.isArray(d.blog_images) && d.blog_images.length > 0)) && (
+                {d.blog && (
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="text-[#ff6600] font-bold mb-4 text-sm sm:text-base md:text-lg flex items-center gap-2">
                       <span className="w-1.5 h-5 sm:h-6 bg-[#ff6600] rounded-full"></span>
                       21. 블로그 (매물 포스팅)
                     </div>
-                    {d.blog && (
-                      <div className="bg-white p-4 sm:p-5 md:p-6 rounded-xl border border-gray-200 text-gray-800 text-xs sm:text-sm md:text-base leading-relaxed space-y-3 whitespace-pre-wrap mb-6 shadow-sm">
-                        {d.blog}
-                      </div>
-                    )}
-                    {Array.isArray(d.blog_images) && d.blog_images.length > 0 && (
-                      <div className="flex flex-col gap-4 w-full">
-                        {/* Watermark Selector ( 관리자 로그인 시에만 노출, 일반 사용자 화면에서는 숨김 ) */}
-                        {isLoggedIn && (
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-orange-50/70 p-3.5 rounded-xl border border-orange-200">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs sm:text-sm font-extrabold text-gray-800 flex items-center gap-1.5">
-                                <Shield size={16} className="text-[#ff6600]" />
-                                사진 워터마크 위치 설정 (다중 선택 가능):
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {(() => {
-                                const isCenterActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('center');
-                                const isBottomRightActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('bottom-right');
-                                const isTopLeftActive = watermarkStyle === 'all' || watermarkStyle.split(',').map(s => s.trim()).includes('top-left');
-                                const isAllActive = isCenterActive && isBottomRightActive && isTopLeftActive;
-
-                                const toggleStyle = (target: 'center' | 'bottom-right' | 'top-left' | 'all') => {
-                                  if (target === 'all') {
-                                    setWatermarkStyle(isAllActive ? '' : 'all');
-                                    return;
-                                  }
-
-                                  let activeArr: string[] = [];
-                                  if (watermarkStyle === 'all') {
-                                    activeArr = ['center', 'bottom-right', 'top-left'];
-                                  } else {
-                                    activeArr = watermarkStyle.split(',').map(s => s.trim()).filter(Boolean);
-                                  }
-
-                                  if (activeArr.includes(target)) {
-                                    activeArr = activeArr.filter(p => p !== target);
-                                  } else {
-                                    activeArr.push(target);
-                                  }
-
-                                  if (activeArr.length === 3) {
-                                    setWatermarkStyle('all');
-                                  } else {
-                                    setWatermarkStyle(activeArr.join(','));
-                                  }
-                                };
-
-                                return (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleStyle('all')}
-                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                                        isAllActive
-                                          ? 'bg-[#ff6600] text-white shadow-xs'
-                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                      }`}
-                                    >
-                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                                        isAllActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
-                                      }`}>
-                                        {isAllActive && <Check size={10} strokeWidth={3} />}
-                                      </div>
-                                      🌟 전체 (통합 3가지)
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleStyle('center')}
-                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                                        isCenterActive
-                                          ? 'bg-[#ff6600] text-white shadow-xs'
-                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                      }`}
-                                    >
-                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                                        isCenterActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
-                                      }`}>
-                                        {isCenterActive && <Check size={10} strokeWidth={3} />}
-                                      </div>
-                                      🏢 추천1: 중앙
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleStyle('bottom-right')}
-                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                                        isBottomRightActive
-                                          ? 'bg-[#ff6600] text-white shadow-xs'
-                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                      }`}
-                                    >
-                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                                        isBottomRightActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
-                                      }`}>
-                                        {isBottomRightActive && <Check size={10} strokeWidth={3} />}
-                                      </div>
-                                      📞 추천2: 우측하단
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleStyle('top-left')}
-                                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                                        isTopLeftActive
-                                          ? 'bg-[#ff6600] text-white shadow-xs'
-                                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-orange-100'
-                                      }`}
-                                    >
-                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                                        isTopLeftActive ? 'bg-white text-[#ff6600] border-white' : 'border-gray-300'
-                                      }`}>
-                                        {isTopLeftActive && <Check size={10} strokeWidth={3} />}
-                                      </div>
-                                      ⭐ 추천3: 좌측상단
-                                    </button>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex flex-col gap-6 w-full">
-                          {d.blog_images.map((imgUrl, imgIdx) => (
-                            <div 
-                              key={imgIdx} 
-                              className="relative w-full aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all group bg-gray-100 select-none"
-                            >
-                              <img 
-                                src={imgUrl} 
-                                alt={`블로그 이미지 ${imgIdx + 1}`} 
-                                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" 
-                              />
-                              {showWatermark && <WatermarkOverlay position={watermarkStyle} />}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <div className="bg-white p-4 sm:p-5 md:p-6 rounded-xl border border-gray-200 text-gray-800 text-xs sm:text-sm md:text-base leading-relaxed space-y-3 whitespace-pre-wrap mb-6 shadow-sm">
+                      {d.blog}
+                    </div>
                   </div>
                 )}
               </div>
@@ -2170,6 +2248,18 @@ export default function App() {
   const loading = !propertiesLoaded || !postsLoaded;
 
   useEffect(() => {
+    // Safety fallback timer to ensure app loads even if Firebase hangs
+    const timer = setTimeout(() => {
+      setPropertiesLoaded(prev => {
+        if (!prev) setProperties(PROPERTIES);
+        return true;
+      });
+      setPostsLoaded(prev => {
+        if (!prev) setBoardPosts(DEFAULT_POSTS);
+        return true;
+      });
+    }, 1500);
+
     import('./firebase').then(({ db }) => {
       import('firebase/firestore').then(({ collection, onSnapshot }) => {
         const unsubProperties = onSnapshot(collection(db, 'properties'), (snapshot) => {
@@ -2191,8 +2281,22 @@ export default function App() {
           setBoardPosts(DEFAULT_POSTS);
           setPostsLoaded(true);
         });
+      }).catch(err => {
+        console.error('Firestore import error:', err);
+        setProperties(PROPERTIES);
+        setBoardPosts(DEFAULT_POSTS);
+        setPropertiesLoaded(true);
+        setPostsLoaded(true);
       });
+    }).catch(err => {
+      console.error('Firebase import error:', err);
+      setProperties(PROPERTIES);
+      setBoardPosts(DEFAULT_POSTS);
+      setPropertiesLoaded(true);
+      setPostsLoaded(true);
     });
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -2307,9 +2411,7 @@ export default function App() {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6600]"></div></div>;
-  }
+  // Removed global loading block to allow instant render
 
   return (
     <>

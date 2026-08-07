@@ -1,9 +1,20 @@
-const fs = require('fs');
-let code = fs.readFileSync('server.ts', 'utf8');
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-code = code.replace(
-  "      if (fs.existsSync(path.join(distPath, 'index.html'))) {\n        html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');\n      } else if (fs.existsSync(devPath)) {\n        html = fs.readFileSync(devPath, 'utf-8');\n      } else {\n        return next();\n      }",
-  "      if (process.env.NODE_ENV !== 'production' && fs.existsSync(devPath)) {\n        html = fs.readFileSync(devPath, 'utf-8');\n      } else if (fs.existsSync(path.join(distPath, 'index.html'))) {\n        html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');\n      } else if (fs.existsSync(devPath)) {\n        html = fs.readFileSync(devPath, 'utf-8');\n      } else {\n        return next();\n      }"
-);
+# Run and deploy your AI Studio app
 
-fs.writeFileSync('server.ts', code);
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/ba3837e9-97fe-4bbb-8120-effbdd2a934c
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

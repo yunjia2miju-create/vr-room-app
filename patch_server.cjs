@@ -1,9 +1,22 @@
 const fs = require('fs');
-let html = fs.readFileSync('index.html', 'utf8');
-if (!html.includes('console.error = function')) {
-  html = html.replace(
-    '<head>',
-    '<head>\n    <script>\n      var oldError = console.error;\n      console.error = function() {\n        var msg = Array.from(arguments).join(" ");\n        var div = document.createElement("div");\n        div.style.cssText = "color:red;padding:10px;border-bottom:1px solid red;background:#fee;z-index:9999;position:relative;";\n        div.textContent = "CONSOLE ERROR: " + msg;\n        document.body.prepend(div);\n        oldError.apply(console, arguments);\n      };\n    </script>'
-  );
-  fs.writeFileSync('index.html', html);
-}
+let code = fs.readFileSync('server.ts', 'utf8');
+
+// Hoist vite initialization
+code = code.replace(
+  "  const handlePropertyOg",
+  `  let viteServer: any = null;\n  if (process.env.NODE_ENV !== 'production') {\n    viteServer = await createViteServer({\n      server: { middlewareMode: true },\n      appType: 'spa',\n    });\n  }\n\n  const handlePropertyOg`
+);
+
+// Apply vite transform
+code = code.replace(
+  "      res.setHeader('Content-Type', 'text/html; charset=utf-8');\n      return res.send(html);",
+  "      if (viteServer) {\n        html = await viteServer.transformIndexHtml(req.originalUrl, html);\n      }\n      res.setHeader('Content-Type', 'text/html; charset=utf-8');\n      return res.send(html);"
+);
+
+// Update app.use(vite.middlewares)
+code = code.replace(
+  "  if (process.env.NODE_ENV !== 'production') {\n    const vite = await createViteServer({\n      server: { middlewareMode: true },\n      appType: 'spa',\n    });\n    app.use(vite.middlewares);\n  } else {",
+  "  if (process.env.NODE_ENV !== 'production' && viteServer) {\n    app.use(viteServer.middlewares);\n  } else {"
+);
+
+fs.writeFileSync('server.ts', code);

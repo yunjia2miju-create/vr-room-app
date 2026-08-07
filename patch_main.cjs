@@ -1,7 +1,7 @@
 const fs = require('fs');
-let html = fs.readFileSync('index.html', 'utf8');
-html = html.replace(
-  '<div id="root"></div>',
-  '<div id="root"><div style="padding: 20px; text-align: center; font-family: sans-serif; color: #666;">Loading App...</div></div>'
+let code = fs.readFileSync('src/main.tsx', 'utf8');
+code = code.replace(
+  "createRoot(document.getElementById('root')).render(",
+  "const rootElement = document.getElementById('root');\nif (!rootElement) throw new Error('Failed to find the root element');\ncreateRoot(rootElement).render("
 );
-fs.writeFileSync('index.html', html);
+fs.writeFileSync('src/main.tsx', code);
