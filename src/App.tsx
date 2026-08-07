@@ -2269,8 +2269,8 @@ const DEFAULT_POSTS = [
 ];
 
 export default function App() {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [boardPosts, setBoardPosts] = useState<any[]>([]);
+  const [properties, setProperties] = useState<any[]>(PROPERTIES);
+  const [boardPosts, setBoardPosts] = useState<any[]>(DEFAULT_POSTS);
   const [propertiesLoaded, setPropertiesLoaded] = useState(false);
   const [postsLoaded, setPostsLoaded] = useState(false);
   
