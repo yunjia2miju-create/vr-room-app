@@ -1369,14 +1369,18 @@ function ScrollToTop() {
   return null;
 }
 
-function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPosts: any[] }) {
+function PropertyDetail({ properties, boardPosts, propertiesLoaded }: { properties: any[]; boardPosts: any[]; propertiesLoaded?: boolean }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const isLoggedIn = useIsLoggedIn();
   const decodedId = id ? decodeURIComponent(id).trim() : '';
-  const selectedProperty = properties.find(p => 
-    (p.id && String(p.id).trim() === decodedId)
-  );
+  const selectedProperty = properties.find(p => {
+    if (!p) return false;
+    const pIdStr = String(p.id || '').trim();
+    const listingNoStr = String(p.listingNumber || '').trim();
+    const twIdStr = pIdStr.startsWith('TW-') ? pIdStr : `TW-${pIdStr}`;
+    return pIdStr === decodedId || listingNoStr === decodedId || twIdStr === decodedId || pIdStr === decodedId.replace(/^TW-/, '');
+  });
   const [mapUrl, setMapUrl] = useState<string>('');
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
   const [selectedNotice, setSelectedNotice] = useState<any | null>(null);
@@ -1575,7 +1579,28 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
     return () => clearTimeout(timer);
   }, [selectedProperty]);
 
-  if (!selectedProperty) return <div className="p-8 text-center">매물을 찾을 수 없습니다.</div>;
+  if (!selectedProperty) {
+    if (!propertiesLoaded) {
+      return (
+        <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-8 text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#ff6600] mb-4"></div>
+          <p className="text-gray-800 font-bold text-base">매물 정보를 불러오는 중입니다...</p>
+          <p className="text-gray-500 text-xs mt-1">태왕공인중개사사무소 실시간 매물 데이터 연결 중</p>
+        </div>
+      );
+    }
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-8 text-center">
+        <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm max-w-md w-full">
+          <p className="text-gray-800 font-bold text-lg mb-2">매물을 찾을 수 없습니다.</p>
+          <p className="text-gray-500 text-sm mb-6">존재하지 않거나 삭제된 매물 번호입니다.</p>
+          <Link to="/" className="inline-block bg-[#ff6600] text-white px-6 py-2.5 rounded-full font-bold text-sm hover:bg-[#e65c00] transition-colors">
+            전체 매물 목록 보기
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans text-gray-800 flex flex-col">
@@ -2426,7 +2451,7 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home properties={properties} boardPosts={boardPosts} />} />
-        <Route path="/property/:id" element={<PropertyDetail properties={properties} boardPosts={boardPosts} />} />
+        <Route path="/property/:id" element={<PropertyDetail properties={properties} boardPosts={boardPosts} propertiesLoaded={propertiesLoaded} />} />
         <Route 
           path="/admin" 
           element={
