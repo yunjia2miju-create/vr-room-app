@@ -999,7 +999,7 @@ export default function AdminPage({
 
                 {/* Form Body */}
                 <form onSubmit={handleSaveProperty} className="bg-gray-50/30 py-6 sm:py-8">
-                  <div className="max-w-4xl mx-auto px-4 sm:px-8 space-y-10">
+                  <div className="w-full px-4 sm:px-8 md:px-12 space-y-10">
                     {/* Section 1: Basic Information */}
               
               {/* Section 1: Basic Information */}
@@ -1800,27 +1800,8 @@ export default function AdminPage({
                   />
                 </div>
 
-                {/* 21. 블로그 */}
+                {/* Blog Image Section Container */}
                 <div className="space-y-4 pt-4 border-t-2 border-gray-100">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <label className="text-base sm:text-lg font-bold text-[#ff6600] flex items-center gap-2">
-                      <FileText size={22} />
-                      21. 블로그 (게시판 포스팅 및 사진 첨부)
-                    </label>
-                    <span className="text-xs sm:text-sm text-gray-500 font-semibold">매물과 연동되는 블로그 설명글 및 사진 게시판</span>
-                  </div>
-
-                  <textarea 
-                    value={detailBlog}
-                    onChange={(e) => setDetailBlog(e.target.value)}
-                    placeholder="21. 블로그에 게시할 상세 포스팅 내용을 작성하세요. (사진 첨부 기능 지원)"
-                    className={`w-full border-2 rounded-xl p-4 text-base sm:text-lg outline-none min-h-[140px] resize-y transition-all ${
-                      detailBlog && detailBlog.trim() !== '' 
-                        ? 'border-emerald-500 bg-emerald-50/10 text-gray-900 focus:border-emerald-600' 
-                        : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600]'
-                    }`}
-                  />
-
                   {/* Blog Image Upload Control */}
                   <div className="space-y-3 bg-orange-50/50 p-4 rounded-xl border border-orange-200">
                     <div className="flex items-center justify-between flex-wrap gap-2">
@@ -2211,6 +2192,28 @@ export default function AdminPage({
                     )}
                   </div>
 
+                  {/* 21. 블로그 (게시판 포스팅 및 사진 첨부) */}
+                  <div className="space-y-3 pt-4 border-t border-gray-200/80">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <label className="text-base sm:text-lg font-bold text-[#ff6600] flex items-center gap-2">
+                        <FileText size={22} />
+                        21. 블로그 (게시판 포스팅 및 사진 첨부)
+                      </label>
+                      <span className="text-xs sm:text-sm text-gray-500 font-semibold">매물과 연동되는 블로그 설명글 및 사진 게시판</span>
+                    </div>
+
+                    <textarea 
+                      value={detailBlog}
+                      onChange={(e) => setDetailBlog(e.target.value)}
+                      placeholder="21. 블로그에 게시할 상세 포스팅 내용을 작성하세요. (사진 첨부 기능 지원)"
+                      className={`w-full border-2 rounded-xl p-4 text-base sm:text-lg outline-none min-h-[140px] resize-y transition-all ${
+                        detailBlog && detailBlog.trim() !== '' 
+                          ? 'border-emerald-500 bg-emerald-50/10 text-gray-900 focus:border-emerald-600' 
+                          : 'border-gray-200 bg-white text-gray-900 focus:border-[#ff6600]'
+                      }`}
+                    />
+                  </div>
+
                   {/* Overall Image Capacity Dashboard Card */}
                   {(() => {
                     const vrUrlsList = formVrUrl.split('\n').map(u => u.trim()).filter(Boolean);
@@ -2286,7 +2289,7 @@ export default function AdminPage({
 
               {/* Form Footer */}
               <div className="bg-white border-t border-gray-200 shrink-0 shadow-xs">
-                <div className="w-full max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+                <div className="w-full px-5 sm:px-8 md:px-12 py-4 flex items-center justify-between">
                   <div className="text-xs text-gray-500 font-medium hidden sm:block">
                     * 필수 항목(<span className="text-red-500 font-bold">*</span>)을 입력하신 후 저장 버튼을 누르세요.
                   </div>

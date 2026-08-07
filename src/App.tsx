@@ -110,6 +110,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
   // Search & Filter States
   const [searchType, setSearchType] = useState('전체');
   const [searchDong, setSearchDong] = useState('전체');
+  const [searchContract, setSearchContract] = useState('전체');
   const [searchName, setSearchName] = useState('');
   const [searchAddr, setSearchAddr] = useState('');
   const [priceMin, setPriceMin] = useState('');
@@ -195,6 +196,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
   const handleResetFilters = () => {
     setSearchType('전체');
     setSearchDong('전체');
+    setSearchContract('전체');
     setSearchName('');
     setSearchAddr('');
     setPriceMin('');
@@ -234,45 +236,92 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
         if (!(p.addr || '').includes(searchDong)) return false;
       }
 
-      // 5. Name Filter
-      if (searchName.trim() !== '') {
-        if (!(p.name || '').toLowerCase().includes(searchName.toLowerCase())) return false;
+      // 4b. Contract Filter
+      if (searchContract !== '전체') {
+        const contract = p.contract || '';
+        if (searchContract === '전세') {
+          if (!contract.includes('전세')) return false;
+        } else if (searchContract === '매매') {
+          if (!contract.includes('매매')) return false;
+        } else if (searchContract === '단기') {
+          if (!contract.includes('단기')) return false;
+        } else if (searchContract === '월세') {
+          if (contract.includes('전세') && !contract.includes('월')) return false;
+        }
       }
 
-      // 6. Address Filter
+      // 5. Name Filter (건물명)
+      if (searchName.trim() !== '') {
+        const term = searchName.trim().toLowerCase();
+        const nameStr = (p.name || '').toLowerCase();
+        const roomStr = (p.room || '').toLowerCase();
+        const fullStr = `${nameStr} ${roomStr}`;
+        const noSpaceName = nameStr.replace(/\s+/g, '');
+        const noSpaceTerm = term.replace(/\s+/g, '');
+
+        if (!nameStr.includes(term) && !noSpaceName.includes(noSpaceTerm) && !fullStr.includes(term)) {
+          return false;
+        }
+      }
+
+      // 6. Address Filter (상세주소)
       if (searchAddr.trim() !== '') {
-        if (!(p.addr || '').toLowerCase().includes(searchAddr.toLowerCase())) return false;
+        const term = searchAddr.trim().toLowerCase();
+        const addrStr = (p.addr || '').toLowerCase();
+        const noSpaceAddr = addrStr.replace(/\s+/g, '');
+        const noSpaceTerm = term.replace(/\s+/g, '');
+        const noteStr = (p.note || '').toLowerCase();
+
+        if (!addrStr.includes(term) && !noSpaceAddr.includes(noSpaceTerm) && !noteStr.includes(term)) {
+          return false;
+        }
       }
 
       // 7. Bunbeon & Bubeon Filter
       if (bunbeon.trim() !== '') {
-        if (!(p.addr || '').includes(bunbeon)) return false;
+        if (!(p.addr || '').includes(bunbeon.trim())) return false;
       }
       if (bubeon.trim() !== '') {
-        if (!(p.addr || '').includes(bubeon)) return false;
+        if (!(p.addr || '').includes(bubeon.trim())) return false;
       }
 
-      // 8. Price Range Filter (monthly rent)
+      // 8. Price Range Filter (monthly rent - 월세범위)
       if (priceMin.trim() !== '') {
-        const minVal = parseInt(priceMin) || 0;
-        const rentVal = parseInt(p.rent) || 0;
-        if (rentVal < minVal) return false;
+        const minVal = parseInt(priceMin, 10);
+        if (!isNaN(minVal)) {
+          const rentNumbers = (p.rent || '').match(/\d+/g);
+          const rentVal = rentNumbers && rentNumbers.length > 0 ? parseInt(rentNumbers[0], 10) : 0;
+          if (rentVal < minVal) return false;
+        }
       }
       if (priceMax.trim() !== '') {
-        const maxVal = parseInt(priceMax) || 999999;
-        const rentVal = parseInt(p.rent) || 0;
-        if (rentVal > maxVal) return false;
+        const maxVal = parseInt(priceMax, 10);
+        if (!isNaN(maxVal)) {
+          const rentNumbers = (p.rent || '').match(/\d+/g);
+          const rentVal = rentNumbers && rentNumbers.length > 0 ? parseInt(rentNumbers[0], 10) : 0;
+          if (rentVal > maxVal) return false;
+        }
       }
 
-      // 9. Property ID Filter
+      // 9. Property ID Filter (매물번호)
       if (searchPropertyId.trim() !== '') {
-        const cleanSearchId = searchPropertyId.replace('TW-', '').trim();
-        if (String(p.id) !== cleanSearchId) return false;
+        const cleanSearchNum = searchPropertyId.trim().replace(/[^0-9]/g, '');
+        const pIdStr = String(p.id).trim();
+
+        if (cleanSearchNum !== '') {
+          // Check if p.id equals cleanSearchNum or includes it
+          if (pIdStr !== cleanSearchNum && !pIdStr.includes(cleanSearchNum)) return false;
+        } else {
+          // If user typed non-numbers, fallback to raw check
+          const searchIdRaw = searchPropertyId.trim().toLowerCase();
+          const fullIdStr = `tw-${p.id}`.toLowerCase();
+          if (!fullIdStr.includes(searchIdRaw) && !pIdStr.includes(searchIdRaw)) return false;
+        }
       }
 
       return true;
     });
-  }, [properties, activeStatusFilter, selectedGroupFilter, searchType, searchDong, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId]);
+  }, [properties, activeStatusFilter, selectedGroupFilter, searchType, searchDong, searchContract, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId]);
 
   // Counts for status cards
   const totalCount = properties.length;
@@ -291,7 +340,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchType, searchDong, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId, selectedGroupFilter, activeStatusFilter]);
+  }, [searchType, searchDong, searchContract, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId, selectedGroupFilter, activeStatusFilter]);
 
   const totalPages = Math.ceil(filteredUserProperties.length / itemsPerPage) || 1;
   const pagedProperties = React.useMemo(() => {
@@ -456,47 +505,74 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 <div className="flex-1 p-1.5 sm:p-3 md:p-4 overflow-x-auto">
                   <table className="w-full text-center border-collapse text-xs sm:text-sm">
                     <thead>
-                      <tr className="text-gray-500 border-b border-gray-200 text-[11px] sm:text-xs">
-                        <th className="py-1.5 px-0.5 sm:px-1 font-medium w-12 sm:w-28 whitespace-nowrap">매물종류</th>
-                        <th className="py-1.5 px-0.5 sm:px-1 font-medium text-left">단지/지역명</th>
-                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">전체</th>
-                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">매매</th>
-                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">전세</th>
-                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">월세</th>
-                        <th className="py-1.5 px-0.5 font-medium w-8 sm:w-16 whitespace-nowrap">단기</th>
+                      <tr className="text-gray-500 border-b border-gray-200 text-[11px] sm:text-xs bg-gray-50/50">
+                        <th className="py-2 px-1 font-semibold w-16 sm:w-28 whitespace-nowrap">매물종류</th>
+                        <th className="py-2 px-1 font-semibold text-left">단지/지역명</th>
+                        <th className="py-2 px-1 font-semibold w-10 sm:w-16 whitespace-nowrap cursor-pointer hover:text-[#ff6600]" onClick={() => setSearchContract('전체')}>전체</th>
+                        <th className="py-2 px-1 font-semibold w-10 sm:w-16 whitespace-nowrap cursor-pointer hover:text-[#ff6600]" onClick={() => setSearchContract('매매')}>매매</th>
+                        <th className="py-2 px-1 font-semibold w-10 sm:w-16 whitespace-nowrap cursor-pointer hover:text-[#ff6600]" onClick={() => setSearchContract('전세')}>전세</th>
+                        <th className="py-2 px-1 font-semibold w-10 sm:w-16 whitespace-nowrap cursor-pointer hover:text-[#ff6600]" onClick={() => setSearchContract('월세')}>월세</th>
+                        <th className="py-2 px-1 font-semibold w-10 sm:w-16 whitespace-nowrap cursor-pointer hover:text-[#ff6600]" onClick={() => setSearchContract('단기')}>단기</th>
                       </tr>
                     </thead>
                     <tbody className="text-xs sm:text-sm">
                       {groupedStats.length > 0 ? (
-                        groupedStats.map((row, idx) => (
-                          <tr 
-                            key={idx} 
-                            className={`border-b border-gray-100 last:border-0 hover:bg-orange-50/50 transition-colors cursor-pointer ${
-                              selectedGroupFilter?.type === row.type && selectedGroupFilter?.dong === row.dong ? 'bg-orange-50 font-bold' : ''
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (selectedGroupFilter?.type === row.type && selectedGroupFilter?.dong === row.dong) {
-                                setSelectedGroupFilter(null);
-                              } else {
-                                setSelectedGroupFilter({ type: row.type, dong: row.dong });
-                              }
-                            }}
-                          >
-                            <td className="py-1.5 sm:py-2.5 px-0.5 sm:px-1 text-gray-600 text-[11px] sm:text-sm whitespace-nowrap">{row.type}</td>
-                            <td className="py-1.5 sm:py-2.5 px-0.5 sm:px-1 text-left text-gray-700 flex items-center gap-1 min-w-0">
-                              <span className="text-gray-900 font-medium text-[11px] sm:text-sm truncate">{row.location}</span>
-                              {selectedGroupFilter?.type === row.type && selectedGroupFilter?.dong === row.dong && (
-                                <span className="bg-orange-500 text-white text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-bold shrink-0">필터</span>
-                              )}
-                            </td>
-                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-blue-500 underline font-medium text-[11px] sm:text-sm">{row.total}</span></td>
-                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-gray-400 text-[11px] sm:text-sm">{row.sell}</span></td>
-                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-gray-500 font-medium text-[11px] sm:text-sm">{row.jeonse}</span></td>
-                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-blue-500 underline font-medium text-[11px] sm:text-sm">{row.monthly}</span></td>
-                            <td className="py-1.5 sm:py-2.5 px-0.5"><span className="text-gray-400 text-[11px] sm:text-sm">{row.short}</span></td>
-                          </tr>
-                        ))
+                        groupedStats.map((row, idx) => {
+                          const isRowActive = searchType === row.type && searchDong === row.dong;
+                          
+                          const handleCellClick = (e: React.MouseEvent, contractVal: string = '전체') => {
+                            e.preventDefault();
+                            setSearchType(row.type);
+                            setSearchDong(row.dong);
+                            setSearchContract(contractVal);
+                            setSelectedGroupFilter({ type: row.type, dong: row.dong });
+
+                            const el = document.getElementById('vacancy-section');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          };
+
+                          return (
+                            <tr 
+                              key={idx} 
+                              className={`border-b border-gray-100 last:border-0 hover:bg-orange-50/60 transition-colors ${
+                                isRowActive ? 'bg-orange-50/80 font-bold' : ''
+                              }`}
+                            >
+                              <td 
+                                onClick={(e) => handleCellClick(e, '전체')}
+                                className="py-2 sm:py-2.5 px-1 text-gray-700 text-[11px] sm:text-sm whitespace-nowrap cursor-pointer hover:text-[#ff6600] hover:underline font-medium"
+                              >
+                                {row.type}
+                              </td>
+                              <td 
+                                onClick={(e) => handleCellClick(e, '전체')}
+                                className="py-2 sm:py-2.5 px-1 text-left text-gray-700 flex items-center gap-1.5 min-w-0 cursor-pointer hover:text-[#ff6600]"
+                              >
+                                <span className="text-gray-900 font-medium text-[11px] sm:text-sm truncate hover:underline">{row.location}</span>
+                                {isRowActive && (
+                                  <span className="bg-[#ff6600] text-white text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 shadow-2xs">
+                                    선택됨
+                                  </span>
+                                )}
+                              </td>
+                              <td onClick={(e) => handleCellClick(e, '전체')} className="py-2 sm:py-2.5 px-1 cursor-pointer">
+                                <span className={`underline text-[11px] sm:text-sm ${searchContract === '전체' && isRowActive ? 'text-[#ff6600] font-black' : 'text-blue-600 font-semibold hover:text-[#ff6600]'}`}>{row.total}</span>
+                              </td>
+                              <td onClick={(e) => handleCellClick(e, '매매')} className="py-2 sm:py-2.5 px-1 cursor-pointer">
+                                <span className={`text-[11px] sm:text-sm ${searchContract === '매매' && isRowActive ? 'text-[#ff6600] font-black underline' : row.sell > 0 ? 'text-blue-600 font-semibold underline hover:text-[#ff6600]' : 'text-gray-400'}`}>{row.sell}</span>
+                              </td>
+                              <td onClick={(e) => handleCellClick(e, '전세')} className="py-2 sm:py-2.5 px-1 cursor-pointer">
+                                <span className={`text-[11px] sm:text-sm ${searchContract === '전세' && isRowActive ? 'text-[#ff6600] font-black underline' : row.jeonse > 0 ? 'text-blue-600 font-semibold underline hover:text-[#ff6600]' : 'text-gray-400'}`}>{row.jeonse}</span>
+                              </td>
+                              <td onClick={(e) => handleCellClick(e, '월세')} className="py-2 sm:py-2.5 px-1 cursor-pointer">
+                                <span className={`text-[11px] sm:text-sm ${searchContract === '월세' && isRowActive ? 'text-[#ff6600] font-black underline' : row.monthly > 0 ? 'text-blue-600 font-semibold underline hover:text-[#ff6600]' : 'text-gray-400'}`}>{row.monthly}</span>
+                              </td>
+                              <td onClick={(e) => handleCellClick(e, '단기')} className="py-2 sm:py-2.5 px-1 cursor-pointer">
+                                <span className={`text-[11px] sm:text-sm ${searchContract === '단기' && isRowActive ? 'text-[#ff6600] font-black underline' : row.short > 0 ? 'text-blue-600 font-semibold underline hover:text-[#ff6600]' : 'text-gray-400'}`}>{row.short}</span>
+                              </td>
+                            </tr>
+                          );
+                        })
                       ) : (
                         <tr>
                           <td colSpan={7} className="py-6 text-gray-400 text-center">등록된 매물이 없습니다.</td>
@@ -513,39 +589,77 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   지역조회
                 </div>
                 <div className="flex-1 p-3 md:p-4 flex items-center gap-2 flex-wrap">
+                  {/* 매물종류 Select */}
                   <select 
                     value={searchType}
-                    onChange={(e) => setSearchType(e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-1.5 outline-none focus:border-[#ff6600] w-32 bg-white"
+                    onChange={(e) => {
+                      setSearchType(e.target.value);
+                      setSelectedGroupFilter(null);
+                    }}
+                    className={`border rounded px-3 py-1.5 outline-none focus:border-[#ff6600] w-32 font-bold transition-all ${
+                      searchType !== '전체' 
+                        ? 'border-[#ff6600] text-[#ff6600] bg-orange-50 ring-2 ring-orange-200' 
+                        : 'border-gray-300 bg-white text-gray-800'
+                    }`}
                   >
                     <option value="전체">종류 (전체)</option>
                     {uniqueTypes.map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
-                  <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-28 bg-gray-50 text-gray-400">
+                  <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-24 bg-gray-50 text-gray-400">
                     <option>경북</option>
                   </select>
-                  <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-28 bg-gray-50 text-gray-400">
+                  <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-24 bg-gray-50 text-gray-400">
                     <option>구미시</option>
                   </select>
+
+                  {/* 동 Select */}
                   <select 
                     value={searchDong}
-                    onChange={(e) => setSearchDong(e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-1.5 outline-none focus:border-[#ff6600] w-28 bg-white"
+                    onChange={(e) => {
+                      setSearchDong(e.target.value);
+                      setSelectedGroupFilter(null);
+                    }}
+                    className={`border rounded px-3 py-1.5 outline-none focus:border-[#ff6600] w-32 font-bold transition-all ${
+                      searchDong !== '전체' 
+                        ? 'border-[#ff6600] text-[#ff6600] bg-orange-50 ring-2 ring-orange-200' 
+                        : 'border-gray-300 bg-white text-gray-800'
+                    }`}
                   >
                     <option value="전체">동 (전체)</option>
                     {uniqueDongs.map(dong => (
                       <option key={dong} value={dong}>{dong}</option>
                     ))}
                   </select>
-                  <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-24 bg-gray-50 text-gray-400">
+
+                  {/* 계약/거래유형 Select */}
+                  <select 
+                    value={searchContract}
+                    onChange={(e) => {
+                      setSearchContract(e.target.value);
+                      setSelectedGroupFilter(null);
+                    }}
+                    className={`border rounded px-3 py-1.5 outline-none focus:border-[#ff6600] w-28 font-bold transition-all ${
+                      searchContract !== '전체' 
+                        ? 'border-[#ff6600] text-[#ff6600] bg-orange-50 ring-2 ring-orange-200' 
+                        : 'border-gray-300 bg-white text-gray-800'
+                    }`}
+                  >
+                    <option value="전체">계약 (전체)</option>
+                    <option value="매매">매매</option>
+                    <option value="전세">전세</option>
+                    <option value="월세">월세</option>
+                    <option value="단기">단기</option>
+                  </select>
+
+                  <select disabled className="border border-gray-200 rounded px-3 py-1.5 outline-none w-20 bg-gray-50 text-gray-400">
                     <option>리</option>
                   </select>
                   
-                  <div className="flex items-center gap-1 ml-2">
-                    <button className="border border-[#ff6600] text-[#ff6600] px-3 py-1.5 rounded font-medium bg-white">일반</button>
-                    <button disabled className="border border-gray-200 text-gray-400 px-3 py-1.5 rounded bg-gray-50 cursor-not-allowed">산</button>
+                  <div className="flex items-center gap-1 ml-1">
+                    <button className="border border-[#ff6600] text-[#ff6600] px-3 py-1.5 rounded font-medium bg-white text-xs">일반</button>
+                    <button disabled className="border border-gray-200 text-gray-400 px-3 py-1.5 rounded bg-gray-50 cursor-not-allowed text-xs">산</button>
                   </div>
                   
                   <input 
@@ -573,36 +687,67 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 </div>
                 <div className="flex-1 p-3 md:p-4 flex items-center gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">건물명 검색</span>
+                    <span className="text-gray-600 font-medium text-xs sm:text-sm">건물명 검색</span>
                     <input 
                       type="text" 
                       value={searchName}
                       onChange={(e) => setSearchName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const el = document.getElementById('vacancy-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }}
                       placeholder="예: 크라운빌"
-                      className="border border-gray-300 rounded px-3 py-1.5 w-40 outline-none focus:border-[#ff6600]" 
+                      className={`border rounded px-3 py-1.5 w-36 sm:w-44 outline-none text-xs sm:text-sm transition-all ${
+                        searchName.trim() 
+                          ? 'border-[#ff6600] bg-orange-50/70 font-semibold text-gray-900 ring-2 ring-orange-200' 
+                          : 'border-gray-300 bg-white focus:border-[#ff6600]'
+                      }`}
                     />
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">상세주소 검색</span>
+                    <span className="text-gray-600 font-medium text-xs sm:text-sm">상세주소 검색</span>
                     <input 
                       type="text" 
                       value={searchAddr}
                       onChange={(e) => setSearchAddr(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const el = document.getElementById('vacancy-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }}
                       placeholder="예: 형곡동"
-                      className="border border-gray-300 rounded px-3 py-1.5 w-48 outline-none focus:border-[#ff6600]" 
+                      className={`border rounded px-3 py-1.5 w-40 sm:w-48 outline-none text-xs sm:text-sm transition-all ${
+                        searchAddr.trim() 
+                          ? 'border-[#ff6600] bg-orange-50/70 font-semibold text-gray-900 ring-2 ring-orange-200' 
+                          : 'border-gray-300 bg-white focus:border-[#ff6600]'
+                      }`}
                     />
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">월세범위</span>
+                    <span className="text-gray-600 font-medium text-xs sm:text-sm">월세범위</span>
                     <div className="flex items-center gap-1">
                       <div className="relative">
                         <input 
                           type="number" 
                           value={priceMin}
                           onChange={(e) => setPriceMin(e.target.value)}
-                          className="border border-gray-300 rounded pl-3 pr-8 py-1.5 w-24 outline-none focus:border-[#ff6600]" 
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const el = document.getElementById('vacancy-section');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                          placeholder="최소"
+                          className={`border rounded pl-2.5 pr-7 py-1.5 w-20 sm:w-24 outline-none text-xs sm:text-sm transition-all ${
+                            priceMin.trim() 
+                              ? 'border-[#ff6600] bg-orange-50/70 font-semibold text-gray-900 ring-2 ring-orange-200' 
+                              : 'border-gray-300 bg-white focus:border-[#ff6600]'
+                          }`}
                         />
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">만</span>
                       </div>
@@ -612,7 +757,18 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                           type="number" 
                           value={priceMax}
                           onChange={(e) => setPriceMax(e.target.value)}
-                          className="border border-gray-300 rounded pl-3 pr-8 py-1.5 w-24 outline-none focus:border-[#ff6600]" 
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const el = document.getElementById('vacancy-section');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                          placeholder="최대"
+                          className={`border rounded pl-2.5 pr-7 py-1.5 w-20 sm:w-24 outline-none text-xs sm:text-sm transition-all ${
+                            priceMax.trim() 
+                              ? 'border-[#ff6600] bg-orange-50/70 font-semibold text-gray-900 ring-2 ring-orange-200' 
+                              : 'border-gray-300 bg-white focus:border-[#ff6600]'
+                          }`}
                         />
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">만</span>
                       </div>
@@ -620,14 +776,32 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">매물번호</span>
-                    <input 
-                      type="text" 
-                      value={searchPropertyId}
-                      onChange={(e) => setSearchPropertyId(e.target.value)}
-                      placeholder="예: TW-1" 
-                      className="border border-gray-300 rounded px-3 py-1.5 w-32 outline-none focus:border-[#ff6600] text-sm" 
-                    />
+                    <span className="text-gray-600 font-medium text-xs sm:text-sm">매물번호</span>
+                    <div className={`flex items-center border rounded overflow-hidden transition-all ${
+                      searchPropertyId.trim() 
+                        ? 'border-[#ff6600] bg-orange-50/70 ring-2 ring-orange-200' 
+                        : 'border-gray-300 bg-white focus-within:border-[#ff6600]'
+                    }`}>
+                      <span className="bg-gray-100 text-gray-700 font-bold px-2 py-1.5 text-xs sm:text-sm border-r border-gray-200 shrink-0 select-none">
+                        TW-
+                      </span>
+                      <input 
+                        type="text" 
+                        value={searchPropertyId}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^(tw-?|tw_?)/i, '').replace(/[^0-9]/g, '');
+                          setSearchPropertyId(val);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const el = document.getElementById('vacancy-section');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        placeholder="숫자 입력" 
+                        className="px-2.5 py-1.5 w-20 sm:w-24 outline-none text-xs sm:text-sm bg-transparent font-semibold text-gray-900" 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -813,9 +987,20 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
 
             {/* List Header */}
             <div id="vacancy-section" className="flex justify-between items-center mb-4 pt-4 border-t border-gray-100">
-              <div className="text-[14px] text-gray-700">
+              <div className="text-[14px] text-gray-700 flex items-center gap-1.5 flex-wrap">
                 검색결과 <strong className="text-orange-600 font-bold">{filteredUserProperties.length}개</strong>의 매물이 있습니다.
-                {activeStatusFilter !== '전체' && <span className="ml-2 text-xs bg-orange-100 text-[#ff6600] px-2 py-0.5 rounded font-bold">{activeStatusFilter}</span>}
+                {activeStatusFilter !== '전체' && <span className="text-xs bg-orange-100 text-[#ff6600] px-2 py-0.5 rounded font-bold">{activeStatusFilter}</span>}
+                {searchType !== '전체' && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-bold">{searchType}</span>}
+                {searchDong !== '전체' && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-bold">{searchDong}</span>}
+                {searchContract !== '전체' && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-bold">{searchContract}</span>}
+                {searchName.trim() !== '' && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">건물: {searchName}</span>}
+                {searchAddr.trim() !== '' && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">주소: {searchAddr}</span>}
+                {(priceMin.trim() !== '' || priceMax.trim() !== '') && (
+                  <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">
+                    월세: {priceMin || '0'}~{priceMax || '∞'}만
+                  </span>
+                )}
+                {searchPropertyId.trim() !== '' && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">매물번호: TW-{searchPropertyId}</span>}
               </div>
               {isLoggedIn && (
                 <button 
