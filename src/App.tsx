@@ -357,7 +357,12 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -1236,14 +1241,14 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-1.5 mt-8">
                 <button 
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
                   className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
                 >
                   {'<<'}
                 </button>
                 <button 
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
                 >
@@ -1252,7 +1257,7 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                   <button 
                     key={p} 
-                    onClick={() => setCurrentPage(p)}
+                    onClick={() => handlePageChange(p)}
                     className={`w-8 h-8 flex items-center justify-center rounded text-[14px] transition-colors cursor-pointer ${
                       p === currentPage 
                         ? 'bg-[#ff6600] text-white font-bold shadow-sm' 
@@ -1263,14 +1268,14 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                   </button>
                 ))}
                 <button 
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
                 >
                   {'>'}
                 </button>
                 <button 
-                  onClick={() => setCurrentPage(totalPages)}
+                  onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage === totalPages}
                   className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors text-xs font-bold cursor-pointer"
                 >
