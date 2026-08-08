@@ -2342,7 +2342,11 @@ export default function App() {
       const { db } = await import('./firebase');
       const { collection, addDoc } = await import('firebase/firestore');
       const nextId = (Math.max(...properties.map(p => parseInt(p.id) || 0), 0) + 1).toString();
-      await addDoc(collection(db, 'properties'), { ...newProperty, id: nextId });
+      await addDoc(collection(db, 'properties'), { 
+        ...newProperty, 
+        id: nextId,
+        createdAt: getTodayDateString()
+      });
     } catch (e) {
       console.error('Error adding property:', e);
     }

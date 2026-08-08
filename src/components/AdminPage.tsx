@@ -127,6 +127,8 @@ export default function AdminPage({
   // Search & Filters inside Admin
   const [adminSearch, setAdminSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('전체');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
 
   // Form / Modal state
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -802,6 +804,10 @@ export default function AdminPage({
     
     const matchesType = typeFilter === '전체' || p.type === typeFilter;
     return matchesSearch && matchesType;
+  }).sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
   });
 
   // Calculate high-level stats
@@ -883,6 +889,12 @@ export default function AdminPage({
       </div>
     );
   }
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProperties = filteredProperties.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans text-gray-800 flex flex-col">
       {/* Admin Header */}
@@ -2331,7 +2343,10 @@ export default function AdminPage({
                     type="text"
                     placeholder="건물명, 주소, 비고 검색..."
                     value={adminSearch}
-                    onChange={(e) => setAdminSearch(e.target.value)}
+                    onChange={(e) => {
+                      setAdminSearch(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:border-[#ff6600] outline-none transition-all"
                   />
                 </div>
@@ -2339,7 +2354,10 @@ export default function AdminPage({
                 {/* Type Filter */}
                 <select 
                   value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
+                  onChange={(e) => {
+                    setTypeFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:border-[#ff6600]"
                 >
                   <option value="전체">모든 종류</option>
@@ -2365,6 +2383,7 @@ export default function AdminPage({
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
+                      <th className="py-4 px-6">매물업로드(년.월.일)</th>
                       <th className="py-4 px-6">관리부동산</th>
                       <th className="py-4 px-6">건물명 / 호실</th>
                       <th className="py-4 px-6">주소</th>
@@ -2375,9 +2394,12 @@ export default function AdminPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredProperties.length > 0 ? (
-                      filteredProperties.map((p) => (
+                    {paginatedProperties.length > 0 ? (
+                      paginatedProperties.map((p) => (
                         <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-6 font-medium text-gray-500 text-xs">
+                            {p.createdAt ? p.createdAt.substring(2).replace(/-/g, '.') : '-'}
+                          </td>
                           <td className="py-4 px-6 font-medium text-gray-600">{p.mgt}</td>
                           <td className="py-4 px-6 font-bold text-gray-900">
                             {p.name} <span className="text-orange-500 font-semibold text-xs ml-1 bg-orange-50 px-1.5 py-0.5 rounded">{p.room}호</span>
@@ -2440,6 +2462,39 @@ export default function AdminPage({
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center py-6 gap-2 border-t border-gray-100">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 disabled:hover:bg-transparent transition-colors"
+                  >
+                    이전
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg text-sm font-bold transition-colors border ${
+                        currentPage === page 
+                          ? 'bg-[#ff6600] text-white border-[#ff6600]' 
+                          : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border border-gray-200 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 disabled:hover:bg-transparent transition-colors"
+                  >
+                    다음
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
