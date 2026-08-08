@@ -89,7 +89,7 @@ interface BoardPost {
   content: string;
   important: boolean;
   createdAt: string;
-  linkedPropertyId?: string;
+  linkedPropertyId?: string | null;
 }
 
 interface AdminPageProps {
@@ -577,9 +577,12 @@ export default function AdminPage({
       title: postTitle,
       content: postContent,
       important: postImportant,
-      createdAt: editingPost ? editingPost.createdAt : new Date().toISOString().split('T')[0],
-      linkedPropertyId: postCategory === '표시의무사항' ? linkedPropertyId : undefined
+      createdAt: editingPost ? editingPost.createdAt : new Date().toISOString().split('T')[0]
     };
+
+    if (postCategory === '표시의무사항') {
+      postPayload.linkedPropertyId = linkedPropertyId;
+    }
 
     // If it's a '표시의무사항' and a property is selected, parse and update that property's details!
     if (postCategory === '표시의무사항' && linkedPropertyId) {

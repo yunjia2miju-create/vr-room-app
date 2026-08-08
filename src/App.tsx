@@ -943,9 +943,10 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
                     {selectedNotice.title}
                   </h4>
                   <p className="text-xs text-gray-400 font-medium">등록일 : {getTodayDateString()}</p>
-                  <div className="border-t border-gray-100 pt-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto">
-                    {selectedNotice.content}
-                  </div>
+                  <div 
+                    className="border-t border-gray-100 pt-4 text-sm text-gray-700 leading-relaxed max-h-[350px] overflow-y-auto ql-editor"
+                    dangerouslySetInnerHTML={{ __html: selectedNotice.content }}
+                  />
                 </div>
 
                 {/* Footer */}
@@ -2206,9 +2207,10 @@ function PropertyDetail({ properties, boardPosts }: { properties: any[]; boardPo
                 {selectedNotice.title}
               </h4>
               <p className="text-xs text-gray-400 font-medium">등록일 : {getTodayDateString()}</p>
-              <div className="border-t border-gray-100 pt-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-[350px] overflow-y-auto">
-                {selectedNotice.content}
-              </div>
+              <div 
+                className="border-t border-gray-100 pt-4 text-sm text-gray-700 leading-relaxed max-h-[350px] overflow-y-auto ql-editor"
+                dangerouslySetInnerHTML={{ __html: selectedNotice.content }}
+              />
             </div>
 
             {/* Footer */}
