@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage, auth, googleProvider } from '../firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
@@ -306,6 +308,58 @@ export default function AdminPage({
   const [postImportant, setPostImportant] = useState(false);
   const [linkedPropertyId, setLinkedPropertyId] = useState<string>('');
 
+  const quillRef = useRef<any>(null);
+
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files ? input.files[0] : null;
+      if (file) {
+        const timestamp = Date.now();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        const storageRef = ref(storage, `board_images/${timestamp}_${safeName}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        
+        uploadTask.on(
+          'state_changed',
+          null,
+          (error) => {
+            console.error('Image upload failed:', error);
+            alert('이미지 업로드에 실패했습니다.');
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            const quill = quillRef.current?.getEditor();
+            if (quill) {
+              const range = quill.getSelection(true);
+              quill.insertEmbed(range.index, 'image', downloadURL);
+              quill.setSelection(range.index + 1);
+            }
+          }
+        );
+      }
+    };
+  }, []);
+
+  const quillModules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{'list': 'ordered'}, {'list': 'bullet'}],
+        ['link', 'image', 'video'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }), [imageHandler]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -507,7 +561,8 @@ export default function AdminPage({
   // Save board post
   const handleSavePost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postTitle.trim() || !postContent.trim()) {
+    const plainTextContent = postContent.replace(/<[^>]*>?/gm, '').trim();
+    if (!postTitle.trim() || !plainTextContent) {
       alert('제목과 내용은 필수 입력 사항입니다.');
       return;
     }
@@ -534,7 +589,8 @@ export default function AdminPage({
         (p.name && p.name === String(linkedPropertyId))
       );
       if (selectedProp) {
-        const parsedDetails = parseDisclosureText(postContent);
+        const plainText = postContent.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p>/gi, '\n').replace(/<[^>]*>?/gm, '');
+        const parsedDetails = parseDisclosureText(plainText);
         
         // Preserve other fields from existing details if not parsed, and merge
         const existingDetails = selectedProp.details || {};
@@ -542,7 +598,7 @@ export default function AdminPage({
           ...existingDetails,
           ...parsedDetails,
           // Fallback to post content for description
-          description: parsedDetails.description || postContent
+          description: parsedDetails.description || plainText
         };
 
         const updatedProperty = {
@@ -807,7 +863,12 @@ export default function AdminPage({
   }).sort((a, b) => {
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return dateB - dateA;
+    if (dateA !== dateB) {
+      return dateB - dateA;
+    }
+    const idA = parseInt(a.id) || 0;
+    const idB = parseInt(b.id) || 0;
+    return idB - idA;
   });
 
   // Calculate high-level stats
@@ -2500,7 +2561,100 @@ export default function AdminPage({
         )}
       </>
     )}
-      </main>
+
+    {activeTab === 'board' && (
+      <div className="p-4 sm:p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <FileText className="text-[#ff6600]" />
+            게시판 / 공지사항 목록
+          </h2>
+          <button 
+            onClick={() => {
+              setEditingPost(null);
+              setPostCategory('공지');
+              setPostTitle('');
+              setPostContent('');
+              setPostImportant(false);
+              setLinkedPropertyId('');
+              setIsBoardFormOpen(true);
+            }}
+            className="bg-[#ff6600] hover:bg-[#e65c00] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2"
+          >
+            <Plus size={16} />
+            새 게시글 작성
+          </button>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
+                <th className="p-4 font-semibold w-24">카테고리</th>
+                <th className="p-4 font-semibold">제목</th>
+                <th className="p-4 font-semibold w-32">등록일</th>
+                <th className="p-4 font-semibold w-24 text-center">관리</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {boardPosts.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-gray-500 text-sm">
+                    등록된 게시글이 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                boardPosts.map(post => (
+                  <tr key={post.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4">
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${post.important ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>
+                        {post.category}
+                      </span>
+                    </td>
+                    <td className="p-4 font-medium text-gray-800 text-sm flex items-center gap-2">
+                      {post.important && <span className="text-red-500 text-xs">★</span>}
+                      {post.title}
+                    </td>
+                    <td className="p-4 text-sm text-gray-500">{post.createdAt}</td>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => {
+                            setEditingPost(post);
+                            setPostCategory(post.category);
+                            setPostTitle(post.title);
+                            setPostContent(post.content);
+                            setPostImportant(post.important);
+                            setLinkedPropertyId(post.linkedPropertyId || '');
+                            setIsBoardFormOpen(true);
+                          }}
+                          className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
+                          title="수정"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (window.confirm('정말 삭제하시겠습니까?')) {
+                              onDeletePost(post.id);
+                            }
+                          }}
+                          className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
+                          title="삭제"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+  </main>
       {/* Board Post Modal Form */}
       {isBoardFormOpen && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -2632,13 +2786,16 @@ export default function AdminPage({
               {/* Content */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500">상세 내용</label>
-                <textarea 
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="사용자 페이지와 매물 상세 페이지에 표시될 내용을 상세하게 입력해 주세요."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#ff6600] outline-none min-h-[220px] resize-y font-mono text-xs leading-relaxed"
-                  required
-                />
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-none [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:border-none [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-sm">
+                  <ReactQuill 
+                    ref={quillRef}
+                    value={postContent}
+                    onChange={setPostContent}
+                    modules={quillModules}
+                    placeholder="사용자 페이지와 매물 상세 페이지에 표시될 내용을 상세하게 입력해 주세요."
+                    theme="snow"
+                  />
+                </div>
               </div>
 
               {/* Options */}

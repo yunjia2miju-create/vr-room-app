@@ -331,6 +331,16 @@ function Home({ properties, boardPosts }: { properties: any[]; boardPosts: any[]
       }
 
       return true;
+    }).sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+      // fallback to id descending
+      const idA = parseInt(a.id) || 0;
+      const idB = parseInt(b.id) || 0;
+      return idB - idA;
     });
   }, [properties, activeStatusFilter, selectedGroupFilter, searchType, searchDong, searchContract, searchName, searchAddr, bunbeon, bubeon, priceMin, priceMax, searchPropertyId]);
 
@@ -2250,48 +2260,45 @@ export default function App() {
   useEffect(() => {
     // Safety fallback timer to ensure app loads even if Firebase hangs
     const timer = setTimeout(() => {
-      setPropertiesLoaded(prev => {
-        if (!prev) setProperties(PROPERTIES);
-        return true;
-      });
-      setPostsLoaded(prev => {
-        if (!prev) setBoardPosts(DEFAULT_POSTS);
-        return true;
-      });
-    }, 1500);
+      setPropertiesLoaded(true);
+      setPostsLoaded(true);
+    }, 2500);
 
     import('./firebase').then(({ db }) => {
       import('firebase/firestore').then(({ collection, onSnapshot }) => {
-        const unsubProperties = onSnapshot(collection(db, 'properties'), (snapshot) => {
+        const unsubProperties = onSnapshot(collection(db, 'properties'), { includeMetadataChanges: true }, (snapshot) => {
           const data = snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
-          setProperties(data.length > 0 ? data : PROPERTIES);
-          setPropertiesLoaded(true);
+          
+          // Only set properties if we have actual data or if we've received the server response
+          if (!snapshot.metadata.fromCache || data.length > 0) {
+            setProperties(data);
+            setPropertiesLoaded(true);
+          } else if (snapshot.metadata.fromCache && data.length === 0) {
+            // Wait for server response if cache is empty
+          }
         }, (error) => {
           console.error('Error fetching properties:', error);
-          setProperties(PROPERTIES);
           setPropertiesLoaded(true);
         });
 
-        const unsubPosts = onSnapshot(collection(db, 'boardPosts'), (snapshot) => {
+        const unsubPosts = onSnapshot(collection(db, 'boardPosts'), { includeMetadataChanges: true }, (snapshot) => {
           const data = snapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
-          setBoardPosts(data.length > 0 ? data : DEFAULT_POSTS);
-          setPostsLoaded(true);
+          
+          if (!snapshot.metadata.fromCache || data.length > 0) {
+            setBoardPosts(data);
+            setPostsLoaded(true);
+          }
         }, (error) => {
           console.error('Error fetching posts:', error);
-          setBoardPosts(DEFAULT_POSTS);
           setPostsLoaded(true);
         });
       }).catch(err => {
         console.error('Firestore import error:', err);
-        setProperties(PROPERTIES);
-        setBoardPosts(DEFAULT_POSTS);
         setPropertiesLoaded(true);
         setPostsLoaded(true);
       });
     }).catch(err => {
       console.error('Firebase import error:', err);
-      setProperties(PROPERTIES);
-      setBoardPosts(DEFAULT_POSTS);
       setPropertiesLoaded(true);
       setPostsLoaded(true);
     });
@@ -2415,7 +2422,16 @@ export default function App() {
     }
   };
 
-  // Removed global loading block to allow instant render
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ff6600]"></div>
+          <p className="text-gray-500 font-medium">데이터를 불러오는 중입니다...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
