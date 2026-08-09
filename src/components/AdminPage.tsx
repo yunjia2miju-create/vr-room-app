@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage, auth, googleProvider } from '../firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import WatermarkOverlay, { WatermarkPosition } from './WatermarkOverlay';
@@ -449,6 +449,17 @@ export default function AdminPage({
         setIsUploadingBlogImg(false);
         setBlogUploadProgress(0);
       });
+  };
+
+  const deleteFromStorage = async (url: string) => {
+    if (!url || !url.includes('firebase')) return;
+    try {
+      const fileRef = ref(storage, url);
+      await deleteObject(fileRef);
+      console.log('File deleted from storage:', url);
+    } catch (error) {
+      console.error('Error deleting file from storage:', error);
+    }
   };
 
   // Helper functions to parse board content into property details
@@ -1449,8 +1460,10 @@ export default function AdminPage({
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           const urls = formVrUrl.split('\n').filter(u => u.trim() !== '');
+                                          const deletedUrl = urls[idx];
                                           urls.splice(idx, 1);
                                           setFormVrUrl(urls.join('\n'));
+                                          deleteFromStorage(deletedUrl);
                                         }}
                                         className="bg-red-600/90 hover:bg-red-600 text-white p-1 rounded transition-colors shadow-md cursor-pointer"
                                         title="이미지 삭제"
@@ -2162,7 +2175,9 @@ export default function AdminPage({
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    const deletedUrl = detailBlogImages[imgIdx];
                                     setDetailBlogImages(prev => prev.filter((_, idx) => idx !== imgIdx));
+                                    deleteFromStorage(deletedUrl);
                                   }}
                                   className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors shadow cursor-pointer"
                                   title="사진 삭제"

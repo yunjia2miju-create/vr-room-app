@@ -2382,8 +2382,28 @@ export default function App() {
   const handleDeleteProperty = async (id: string, firebaseId?: string) => {
     try {
       if (firebaseId) {
-        const { db } = await import('./firebase');
+        const { db, storage } = await import('./firebase');
         const { doc, deleteDoc } = await import('firebase/firestore');
+        const { ref, deleteObject } = await import('firebase/storage');
+        
+        // Find property to delete its associated images
+        const propToDelete = properties.find(p => p.firebaseId === firebaseId);
+        if (propToDelete) {
+          const deleteStorageFile = async (url: string) => {
+            if (!url || !url.includes('firebase')) return;
+            try {
+              await deleteObject(ref(storage, url));
+            } catch (err) {
+              console.error('Error deleting file:', url, err);
+            }
+          };
+
+          const vrUrls = (propToDelete.vrUrl || '').split('\n').filter(u => u.trim() !== '');
+          const blogUrls = propToDelete.details?.blog_images || [];
+          
+          await Promise.all([...vrUrls, ...blogUrls].map(url => deleteStorageFile(url)));
+        }
+
         const propertyRef = doc(db, 'properties', firebaseId);
         await deleteDoc(propertyRef);
       }
@@ -2419,8 +2439,33 @@ export default function App() {
   const handleDeletePost = async (id: string, firebaseId?: string) => {
     try {
       if (firebaseId) {
-        const { db } = await import('./firebase');
+        const { db, storage } = await import('./firebase');
         const { doc, deleteDoc } = await import('firebase/firestore');
+        const { ref, deleteObject } = await import('firebase/storage');
+
+        // Find post to delete its associated images
+        const postToDelete = boardPosts.find(p => p.firebaseId === firebaseId);
+        if (postToDelete && postToDelete.content) {
+          const deleteStorageFile = async (url: string) => {
+            if (!url || !url.includes('firebase')) return;
+            try {
+              await deleteObject(ref(storage, url));
+            } catch (err) {
+              console.error('Error deleting file:', url, err);
+            }
+          };
+
+          // Extract image URLs from post content
+          const imgRegex = /<img[^>]+src="([^">]+)"/g;
+          let match;
+          const imageUrls = [];
+          while ((match = imgRegex.exec(postToDelete.content)) !== null) {
+            imageUrls.push(match[1]);
+          }
+          
+          await Promise.all(imageUrls.map(url => deleteStorageFile(url)));
+        }
+
         const postRef = doc(db, 'boardPosts', firebaseId);
         await deleteDoc(postRef);
       }
