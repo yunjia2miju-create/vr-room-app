@@ -63,7 +63,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
           panorama: urls[0],
           touchmoveTwoFingers: false,
           mousewheel: true,
-          defaultZoomLvl: 0,
+          defaultZoomLvl: 50,
           navbar: [
             'zoom',
             'fullscreen',
@@ -75,7 +75,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         setTimeout(() => {
           if (viewerInstance) {
             viewerInstance.resize();
-            try { viewerInstance.zoom(0); } catch (e) {}
+            try { viewerInstance.zoom(50); } catch (e) {}
           }
         }, 300);
 
@@ -98,7 +98,12 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         // Log event firing to diagnose issues
         viewerInstance.addEventListener('panorama-error', (e: any) => {
           console.error('PSV: panorama-error fired:', e);
-          setError('360 이미지를 불러올 수 없습니다. 네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.');
+          if (viewerInstance) {
+            try {
+              viewerInstance.setPanorama('/sphere.jpg', { transition: 0, showLoader: false });
+              setError('이미지가 삭제되었거나 불러올 수 없습니다.');
+            } catch (err) {}
+          }
         });
 
         viewerInstance.addEventListener('position-updated', () => {
@@ -112,7 +117,7 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
           setIsLoaded(true);
           if (!viewerInstance) return;
           try {
-            viewerInstance.zoom(0);
+            viewerInstance.zoom(50);
           } catch (e) {}
         };
 
@@ -162,14 +167,18 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     const nextIndex = (currentIndex + 1) % urls.length;
     setCurrentIndex(nextIndex);
     setError(null);
-    viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: true, zoom: 0 }).then(() => {
+    viewerRef.current.setPanorama(urls[nextIndex], { transition: 100, showLoader: true, zoom: 50 }).then(() => {
       if (viewerRef.current) {
         try {
-          viewerRef.current.zoom(0);
+          viewerRef.current.zoom(50);
         } catch (e) {}
       }
     }).catch((err: any) => {
       console.error('goToNext error:', err);
+      if (viewerRef.current) {
+        viewerRef.current.setPanorama('/sphere.jpg', { transition: 0, showLoader: false }).catch(() => {});
+        setError('이미지가 삭제되었거나 불러올 수 없습니다.');
+      }
     });
   };
 
@@ -182,14 +191,18 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
     const prevIndex = (currentIndex - 1 + urls.length) % urls.length;
     setCurrentIndex(prevIndex);
     setError(null);
-    viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: true, zoom: 0 }).then(() => {
+    viewerRef.current.setPanorama(urls[prevIndex], { transition: 100, showLoader: true, zoom: 50 }).then(() => {
       if (viewerRef.current) {
         try {
-          viewerRef.current.zoom(0);
+          viewerRef.current.zoom(50);
         } catch (e) {}
       }
     }).catch((err: any) => {
       console.error('goToPrev error:', err);
+      if (viewerRef.current) {
+        viewerRef.current.setPanorama('/sphere.jpg', { transition: 0, showLoader: false }).catch(() => {});
+        setError('이미지가 삭제되었거나 불러올 수 없습니다.');
+      }
     });
   };
 
