@@ -223,7 +223,11 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
       )}
 
 
-      <div ref={containerRef} className="w-full h-full" />
+      <div 
+        ref={containerRef} 
+        className="w-full h-full"
+        style={{ filter: 'brightness(1.15) contrast(1.08)' }}
+      />
 
       {/* Loading Overlay */}
       {!isLoaded && !error && (
@@ -234,10 +238,10 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
         </div>
       )}
 
-      {/* Fixed Center Watermark (50% opacity building icon + "360 VR 실매물" text) */}
+      {/* Fixed Center Watermark (20% opacity building icon + "360 VR 실매물" text) */}
       {isLoaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 p-4">
-          <div className="flex flex-col items-center justify-center opacity-50 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] select-none" style={{ opacity: 0.5 }}>
+          <div className="flex flex-col items-center justify-center opacity-20 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] select-none" style={{ opacity: 0.2 }}>
             <TaewangLogoIcon className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0" />
             <span className="text-white font-black text-sm sm:text-lg md:text-xl tracking-wider whitespace-nowrap mt-1 drop-shadow-md">
               360 VR 실매물

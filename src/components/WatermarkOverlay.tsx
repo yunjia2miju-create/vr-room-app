@@ -51,7 +51,7 @@ export const WatermarkOverlay: React.FC<WatermarkProps> = ({
   customBottomText,
   customTopText,
   opacity = 0.9,
-  centerOpacity = 0.3,
+  centerOpacity = 0.2,
   officeName = '태왕공인중개사사무소',
   phone = '054-455-6789',
   showIcon = true,
