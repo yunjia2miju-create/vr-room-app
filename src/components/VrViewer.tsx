@@ -226,7 +226,6 @@ export default function VrViewer({ imageUrl, propertyName, propertyAddr }: VrVie
       <div 
         ref={containerRef} 
         className="w-full h-full"
-        style={{ filter: 'brightness(1.15) contrast(1.08)' }}
       />
 
       {/* Loading Overlay */}
